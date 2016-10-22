@@ -1,0 +1,6 @@
+public f () -> () {}
+public f () -> (T) {}
+public f () -> (T, U) {}
+public f () -> (T, U, V) {}
+public f () -> (T, U, V, X) {}
+public f () -> (T, U, V, X, Y) {}

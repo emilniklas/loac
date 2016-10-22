@@ -1,0 +1,6 @@
+module Loa.Project
+
+use Library.One.Class
+use Library.Two.Struct
+
+public const someConst = 456

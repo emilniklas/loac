@@ -1,0 +1,21 @@
+public f () {}
+public f () => 123
+public f () {
+  return 123
+}
+public f (value) {
+  if value {
+    return 123
+  }
+  return 1.23
+}
+public f (value) {
+  if value {
+    return 123
+  }
+  return 123
+}
+/*public f () {
+  let i = 123
+  return i
+}*/

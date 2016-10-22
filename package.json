@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "babel-jest": "^16.0.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.16.0",
+    "jest-cli": "^16.0.1"
+  },
+  "jest": {}
+}

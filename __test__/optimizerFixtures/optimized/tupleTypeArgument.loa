@@ -1,0 +1,6 @@
+public f () -> Unit {}
+public f () -> T {}
+public f () -> Tuple2<T, U> {}
+public f () -> Tuple3<T, U, V> {}
+public f () -> Tuple4<T, U, V, X> {}
+public f () -> Tuple5<T, U, V, X, Y> {}

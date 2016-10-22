@@ -1,0 +1,896 @@
+import * as ast from './ast'
+import * as t from './tokens'
+import ParserError from './errors/ParserError'
+
+export default class Parser {
+  constructor (
+    tokens,
+    cursor = 0
+  ) {
+    this._tokens = tokens
+    this._cursor = cursor
+  }
+
+  static parse (tokens) {
+    return this.load(tokens)
+      ._parseProgram()
+  }
+
+  static load (tokens) {
+    return new Parser(
+      tokens.filter((tk) => {
+        return tk.type !== t.WHITESPACE
+      }).filter((tk) => {
+        return tk.type !== t.SINGLE_LINE_COMMENT
+      }).filter((tk) => {
+        return tk.type !== t.MULTI_LINE_COMMENT
+      })
+    )
+  }
+
+  get _current () {
+    return this._tokens[this._cursor]
+  }
+
+  _expect (tokenType) {
+    if (!this._is(tokenType)) {
+      throw new ParserError(
+        this._tokens,
+        this._cursor,
+        `Expected a ${tokenType} but saw a ${this._current.type}`
+      )
+    }
+  }
+
+  _is (tokenType) {
+    return this._current.type === tokenType
+  }
+
+  _isEOF () {
+    return this._is(t.EOF)
+  }
+
+  _isVisibility () {
+    return this._is(t.PUBLIC_KEYWORD)
+      || this._is(t.PRIVATE_KEYWORD)
+  }
+
+  _multi (condition, parse) {
+    let result = []
+    while (condition()) {
+      result.push(parse.call(this))
+    }
+    return result
+  }
+
+  _move () {
+    const pop = this._current
+    this._cursor++
+    return pop
+  }
+
+  _parserError (message) {
+    throw new ParserError(
+      this._tokens, this._cursor, message
+    )
+  }
+
+  _if (condition, parse) {
+    const conditionFunc =
+      typeof condition === 'function'
+        ? condition : () => this._is(condition)
+
+    if (conditionFunc()) {
+      return parse.call(this)
+    }
+    return null
+  }
+
+  _consume (token) {
+    this._expect(token)
+    return this._move()
+  }
+
+  /**
+   * Program ::=
+   *   ModuleStatement?
+   *   UseStatement*
+   *   TopLevelDeclaration*
+   */
+  _parseProgram () {
+    const moduleStatement =
+      this._is(t.MODULE_KEYWORD)
+        ? this._parseModuleStatement()
+        : null
+
+    return new ast.Program(
+      moduleStatement,
+      this._multi(
+        () => this._is(t.USE_KEYWORD),
+        this._parseUseStatement
+      ),
+      this._multi(
+        () => !this._isEOF(),
+        this._parseTopLevelDeclaration
+      ),
+    )
+  }
+
+  /**
+   * ModuleStatement ::=
+   *   MODULE_KEYWORD
+   *   ModuleIdentifier
+   */
+  _parseModuleStatement () {
+    const moduleKeyword = this._move()
+    const moduleIdentifier = this._parseModuleIdentifier()
+    return new ast.ModuleStatement(
+      moduleKeyword,
+      moduleIdentifier
+    )
+  }
+
+  /**
+   * ModuleIdentifier ::=
+   *  SimpleIdentifier
+   *  (SimpleIdentifier PERIOD)*
+   */
+  _parseModuleIdentifier (carry = []) {
+    const simpleIdentifier = this._parseSimpleIdentifier()
+    const identifiers = carry.concat(simpleIdentifier)
+    if (this._is(t.PERIOD)) {
+      this._move()
+      return this._parseModuleIdentifier(
+        identifiers
+      )
+    }
+    return new ast.ModuleIdentifier(identifiers)
+  }
+
+  /**
+   * SimpleIdentifier ::=
+   *   SYMBOL
+   */
+  _parseSimpleIdentifier () {
+    this._expect(t.SYMBOL)
+    const symbol = this._move()
+    return new ast.SimpleIdentifier(symbol)
+  }
+
+  /**
+   * UseStatement ::=
+   *   USE_KEYWORD
+   *   QualifiedIdentifier
+   */
+  _parseUseStatement () {
+    this._expect(t.USE_KEYWORD)
+    const use = this._move()
+    const id = this._parseQualifiedIdentifier()
+    return new ast.UseStatement(
+      use,
+      id
+    )
+  }
+
+  /**
+   * QualifiedIdentifier ::=
+   *   ModuleIdentifier
+   *   PERIOD
+   *   SimpleIdentifier
+   */
+  _parseQualifiedIdentifier () {
+    // This will consume all simple identifiers,
+    // so we need to pop off the last one and
+    // use that as the last identifier in the
+    // qualified identifier.
+    const identifiers = this._parseModuleIdentifier().simpleIdentifiers
+
+    const moduleIdentifier = new ast.ModuleIdentifier(
+      identifiers.slice(0, identifiers.length - 1)
+    )
+    const simpleIdentifier = identifiers[identifiers.length - 1]
+
+    return new ast.QualifiedIdentifier(
+      moduleIdentifier,
+      simpleIdentifier
+    )
+  }
+
+  /**
+   * TopLevelDeclaration ::=
+   *   Annotation*
+   *   Visibility
+   *   ( StructDeclaration
+   *   | ClassDeclaration
+   *   | ActorDeclaration
+   *   | FunctionDeclaration
+   *   | ConstantDeclaration
+   *   )
+   */
+  _parseTopLevelDeclaration () {
+    // PARSER ANNOTATIONS
+    const visibility = this._parseVisibility()
+
+    const declaration = (() => {
+      switch (this._current.type) {
+        case t.CONST_KEYWORD:
+          return this._parseConstantDeclaration()
+        case t.INTERFACE_KEYWORD:
+          return this._parseInterfaceDeclaration()
+        case t.SYMBOL:
+          return this._parseFunctionDeclaration()
+      }
+      this._parserError(
+        'Expected a top level declaration'
+      )
+    })()
+
+    return new ast.TopLevelDeclaration(
+      [], visibility, declaration
+    )
+  }
+
+  /**
+   * Visibility ::=
+   *   PRIVATE_KEYWORD |
+   *   PUBLIC_KEYWORD
+   */
+  _parseVisibility () {
+    switch (this._current.type) {
+      case t.PUBLIC_KEYWORD:
+        return new ast.Visibility(this._move())
+      case t.PRIVATE_KEYWORD:
+        return new ast.Visibility(this._move())
+    }
+
+    this._parserError(
+      'Expected "public" or "private"'
+    )
+  }
+
+  /**
+   * ConstantDeclaration ::=
+   *   CONST_KEYWORD
+   *   Assignment
+   */
+  _parseConstantDeclaration () {
+    this._expect(t.CONST_KEYWORD)
+
+    const keyword = this._move()
+    const assignment = this._parseAssignment()
+
+    return new ast.ConstantDeclaration(
+      keyword, assignment
+    )
+  }
+
+  /**
+   * Assignment ::=
+   *   Pattern
+   *   TypeAnnotation?
+   *   (
+   *     ASSIGN_OPERATOR
+   *     Expression
+   *   )?
+   */
+  _parseAssignment () {
+    const pattern = this._parsePattern()
+    const typeAnnotation = this._is(t.COLON)
+      ? this._parseTypeAnnotation()
+      : null
+
+    if (!this._is(t.ASSIGN_OPERATOR)) {
+      return new ast.Assignment(
+        pattern, typeAnnotation
+      )
+    }
+
+    this._move() // =
+
+    const expression = this._parseExpression()
+
+    return new ast.Assignment(
+      pattern, typeAnnotation, expression
+    )
+  }
+
+  /*
+   * Pattern ::=
+   *   ( NamePattern
+   *   )
+   */
+  _parsePattern () {
+    switch (this._current.type) {
+      case t.SYMBOL:
+        return this._parseNamePattern()
+    }
+
+    this._parserError(
+      'Expected a pattern'
+    )
+  }
+
+  /**
+   * NamePattern ::=
+   *   SimpleIdentifier
+   */
+  _parseNamePattern () {
+    return new ast.NamePattern(
+      this._parseSimpleIdentifier()
+    )
+  }
+
+  /**
+   * Expression ::=
+   *   ( IntegerLiteralExpression
+   *   | FloatLiteralExpression
+   *   | ValueExpression
+   *   )
+   */
+  _parseExpression () {
+    switch (this._current.type) {
+      case t.INTEGER_LITERAL:
+        return this._parseIntegerLiteralExpression()
+      case t.FLOAT_LITERAL:
+        return this._parseFloatLiteralExpression()
+      case t.SYMBOL:
+        return this._parseValueExpression()
+      default:
+        this._parserError(
+          'Expected an expression'
+        )
+    }
+  }
+
+  /**
+   * IntegerLiteralExpression ::=
+   *   INTEGER_LITERAL
+   */
+  _parseIntegerLiteralExpression () {
+    return new ast.IntegerLiteralExpression(
+      this._consume(t.INTEGER_LITERAL)
+    )
+  }
+
+  /**
+   * FloatLiteralExpression ::=
+   *   FLOAT_LITERAL
+   */
+  _parseFloatLiteralExpression () {
+    return new ast.FloatLiteralExpression(
+      this._consume(t.FLOAT_LITERAL)
+    )
+  }
+
+  /**
+   * ValueExpression ::=
+   *   SimpleIdentifier
+   */
+  _parseValueExpression () {
+    const identifier = this._parseSimpleIdentifier()
+
+    return new ast.ValueExpression(
+      identifier
+    )
+  }
+
+  /**
+   * InterfaceDeclaration ::=
+   *   INTERFACE_KEYWORD
+   *   SimpleIdentifier
+   *   Interfaces?
+   *   ObjectBody?
+   */
+  _parseInterfaceDeclaration () {
+    this._expect(t.INTERFACE_KEYWORD)
+    const keyword = this._move()
+    const identifier = this._parseSimpleIdentifier()
+    const interfaces = this._is(t.COLON)
+      ? this._parseInterfaces()
+      : null
+    const body = this._is(t.BEGIN_CURLY_BRACE)
+      ? this._parseObjectBody()
+      : null
+
+    return new ast.InterfaceDeclaration(
+      keyword,
+      identifier,
+      interfaces,
+      body
+    )
+  }
+
+  /**
+   * ObjectBody ::=
+   *   BEGIN_CURLY_BRACE
+   *   Field*
+   *   END_CURLY_BRACE
+   */
+  _parseObjectBody () {
+    this._expect(t.BEGIN_CURLY_BRACE)
+    const begin = this._move()
+    const fields = this._multi(
+      () => !this._is(t.END_CURLY_BRACE),
+      this._parseField
+    )
+    this._expect(t.END_CURLY_BRACE)
+    const end = this._move()
+
+    return new ast.ObjectBody(
+      begin, fields, end
+    )
+  }
+
+  /**
+   * Field ::=
+   *   Annotation*
+   *   Visibility?
+   *   (DELEGATE_KEYWORD | STATIC_KEYWORD | CONST_KEYWORD)?
+   *   SimpleIdentifier
+   *   TypeAnnotation?
+   *   (ASSIGN_OPERATOR Expression)?
+   */
+  _parseField () {
+    const annotations = []
+    const visibility = this._isVisibility()
+      ? this._parseVisibility()
+      : null
+    const keyword = (() => {
+      switch (this._current.type) {
+        case t.STATIC_KEYWORD:
+        case t.CONST_KEYWORD:
+        case t.DELEGATE_KEYWORD:
+          return this._move()
+        default:
+          return null
+      }
+    })()
+    const identifier = this._parseSimpleIdentifier()
+    const typeAnnotation = this._is(t.COLON)
+      ? this._parseTypeAnnotation()
+      : null
+
+    const expression = this._is(t.ASSIGN_OPERATOR)
+      ? this._move() && this._parseExpression()
+      : null
+
+    return new ast.Field(
+      annotations, visibility,
+      keyword, identifier,
+      typeAnnotation, expression
+    )
+  }
+
+  /**
+   * FunctionDeclaration ::=
+   *   SimpleIdentifier
+   *   FunctionExpression
+   */
+  _parseFunctionDeclaration () {
+    const identifier = this._parseSimpleIdentifier()
+    const functionExpression = this._parseFunctionExpression()
+
+    return new ast.FunctionDeclaration(
+      identifier, functionExpression
+    )
+  }
+
+
+  /**
+   * FunctionExpression ::=
+   *   ParameterList
+   *   ReturnType?
+   *   FunctionBody?
+   */
+  _parseFunctionExpression () {
+    const parameterList = this._parseParameterList()
+    const returnType = this._if(t.ARROW, this._parseReturnType)
+    const body = this._is(t.FAT_ARROW) || this._is(t.BEGIN_CURLY_BRACE)
+      ? this._parseFunctionBody()
+      : null
+
+    return new ast.FunctionExpression(
+      parameterList, returnType, body
+    )
+  }
+
+  /**
+   * FunctionBody ::=
+   *   ExpressionFunctionBody |
+   *   BlockFunctionBody
+   */
+  _parseFunctionBody () {
+      switch (this._current.type) {
+        case t.FAT_ARROW:
+          return this._parseExpressionFunctionBody()
+        case t.BEGIN_CURLY_BRACE:
+          return this._parseBlockFunctionBody()
+        default:
+          this._parserError(
+            'Expected "=>" or "{"'
+          )
+      }
+  }
+
+  /**
+   * ParameterList ::=
+   *   BEGIN_PAREN
+   *   (TypedPattern COMMA?)*
+   *   END_PAREN
+   */
+  _parseParameterList () {
+    const beginParen = this._consume(t.BEGIN_PAREN)
+    const patterns = this._multi(
+      () => {
+        if (this._is(t.COMMA)) {
+          this._move()
+        }
+        return !this._is(t.END_PAREN)
+      },
+      this._parseTypedPattern
+    )
+    const endParen = this._consume(t.END_PAREN)
+
+    return new ast.ParameterList(
+      beginParen, patterns, endParen
+    )
+  }
+
+  /**
+   * TypedPattern ::=
+   *   Pattern
+   *   (COLON TypeArgument)?
+   */
+  _parseTypedPattern () {
+    const pattern = this._parsePattern()
+    const typeArgument = (() => {
+      if (!this._is(t.COLON)) {
+        return null
+      }
+
+      this._move() // :
+
+      return this._parseTypeArgument()
+    })()
+
+    return new ast.TypedPattern(
+      pattern, typeArgument
+    )
+  }
+
+  /**
+   * ExpressionFunctionBody ::=
+   *   FAT_ARROW
+   *   Expression
+   */
+  _parseExpressionFunctionBody () {
+    const arrow = this._consume(t.FAT_ARROW)
+    const expression = this._parseExpression()
+
+    return new ast.ExpressionFunctionBody(
+      arrow, expression
+    )
+  }
+
+  /**
+   * BlockFunctionBody ::=
+   *   BEGIN_CURLY_BRACE
+   *   Statement*
+   *   END_CURLY_BRACE
+   */
+  _parseBlockFunctionBody () {
+    const beginCurly = this._consume(t.BEGIN_CURLY_BRACE)
+    const statements = this._multi(
+      () => !this._is(t.END_CURLY_BRACE),
+      this._parseStatement
+    )
+    const endCurly = this._consume(t.END_CURLY_BRACE)
+
+    return new ast.BlockFunctionBody(
+      beginCurly, statements, endCurly
+    )
+  }
+
+  /**
+   * ReturnType ::=
+   *   ARROW
+   *   TypeArgument
+   */
+  _parseReturnType () {
+    const arrow = this._consume(t.ARROW)
+    const typeArgument = this._parseTypeArgument()
+
+    return new ast.ReturnType(
+      arrow, typeArgument
+    )
+  }
+
+  /**
+   * TypeArgument ::=
+   *   ( TypeReference
+   *   | ListTypeArgument
+   *   | DictTypeArgument
+   *   | TupleTypeArgument
+   *   | FutureTypeArgument
+   *   | UnionTypeArgument
+   *   )
+   */
+  _parseTypeArgument () {
+    const first = this._parseSingleTypeArgument()
+
+    if (this._is(t.PIPE)) {
+      this._move()
+      return this._parseUnionTypeArgument([first])
+    }
+
+    return first
+  }
+
+  _parseSingleTypeArgument () {
+    switch (this._current.type) {
+      case t.SYMBOL:
+        return this._parseTypeReference()
+      case t.BEGIN_SQUARE_BRACKET:
+        return this._parseListOrDictTypeArgument()
+      case t.BEGIN_PAREN:
+        return this._parseTupleTypeArgument()
+      case t.STAR:
+        return this._parseFutureTypeArgument()
+      default:
+        this._parserError(
+          'Expected a type argument'
+        )
+    }
+  }
+
+  /**
+   * TypeReference ::=
+   *   Identifier
+   *   TypeArguments?
+   */
+  _parseTypeReference () {
+    const identifier = this._parseIdentifier()
+    const typeArguments = this._if(
+      t.BEGIN_ANGLE_BRACKET,
+      this._parseTypeArguments
+    )
+
+    return new ast.TypeReference(
+      identifier, typeArguments
+    )
+  }
+
+
+  /**
+   * TypeArguments ::=
+   *   BEGIN_ANGLE_BRACKET
+   *   TypeArgument
+   *   (TypeArgument COMMA?)*
+   *   END_ANGLE_BRACKET
+   */
+  _parseTypeArguments () {
+    const begin = this._consume(t.BEGIN_ANGLE_BRACKET)
+    const typeArguments = this._multi(
+      () => {
+        if (this._is(t.COMMA)) {
+          this._move()
+        }
+        return !this._is(t.END_ANGLE_BRACKET)
+      },
+      this._parseTypeArgument
+    )
+
+    if (typeArguments.length === 0) {
+      this._parserError(
+        'Expected a type argument'
+      )
+    }
+
+    const end = this._consume(t.END_ANGLE_BRACKET)
+
+    return new ast.TypeArguments(
+      begin, typeArguments, end
+    )
+  }
+
+  /**
+   * Identifier ::=
+   *   QualifiedIdentifier |
+   *   SimpleIdentifier
+   */
+  _parseIdentifier () {
+    const first = this._parseSimpleIdentifier()
+    const rest = this._multi(
+      () => this._is(t.PERIOD),
+      this._parseSimpleIdentifier
+    )
+
+    if (rest.length === 0) {
+      return first
+    }
+
+    const simpleIdentifiers = [first, ...rest]
+    const last = simpleIdentifiers[simpleIdentifiers.length - 1]
+    const moduleIdentifier = new ast.ModuleIdentifier(
+      simpleIdentifiers.slice(0, simpleIdentifiers.length - 1)
+    )
+
+    return new ast.QualifiedIdentifier(
+      moduleIdentifier,
+      last
+    )
+  }
+
+  /**
+   * ListTypeReference ::=
+   *   BEGIN_SQUARE_BRACKET
+   *   TypeArgument
+   *   END_SQUARE_BRACKET
+   */
+  _parseListTypeArgument () {
+    const begin = this._consume(t.BEGIN_SQUARE_BRACKET)
+    const typeArgument = this._parseTypeArgument()
+    const end = this._consume(t.END_SQUARE_BRACKET)
+
+    return new ast.ListTypeArgument(
+      begin, typeArgument, end
+    )
+  }
+
+  /**
+   * (ListTypeArgument | DictTypeArgument)
+   */
+  _parseListOrDictTypeArgument () {
+    const begin = this._consume(t.BEGIN_SQUARE_BRACKET)
+    const firstTypeArgument = this._parseTypeArgument()
+
+    switch (this._current.type) {
+      case t.END_SQUARE_BRACKET:
+        const listEnd = this._consume(t.END_SQUARE_BRACKET)
+
+        return new ast.ListTypeArgument(
+          begin, firstTypeArgument, listEnd
+        )
+      case t.COLON:
+        const colon = this._move() // :
+        const valueTypeArgument = this._parseTypeArgument()
+        const dictEnd = this._consume(t.END_SQUARE_BRACKET)
+
+        return new ast.DictTypeArgument(
+          begin, firstTypeArgument, colon, valueTypeArgument, dictEnd
+        )
+      default:
+        this._parserError(
+          'Expected ":" or "]"'
+        )
+    }
+  }
+
+  /**
+   * TupleTypeArgument ::=
+   *   BEGIN_PAREN
+   *   (TypeArgument COMMA?)*
+   *   END_PAREN
+   */
+  _parseTupleTypeArgument () {
+    const begin = this._consume(t.BEGIN_PAREN)
+    const typeArguments = this._multi(
+      () => !this._is(t.END_PAREN),
+      () => {
+        const next = this._parseTypeArgument()
+        if (this._is(t.COMMA)) {
+          this._move() // ,
+        }
+        return next
+      }
+    )
+    const end = this._consume(t.END_PAREN)
+
+    return new ast.TupleTypeArgument(
+      begin, typeArguments, end
+    )
+  }
+
+  /**
+   * FutureTypeArgument ::=
+   *   STAR
+   *   TypeArgument
+   */
+  _parseFutureTypeArgument () {
+    const star = this._consume(t.STAR)
+    const type = this._parseTypeArgument()
+
+    return new ast.FutureTypeArgument(
+      star, type
+    )
+  }
+
+  /**
+   * UnionTypeArgument ::=
+   *   TypeArgument
+   *   (PIPE TypeArgument)+
+   */
+  _parseUnionTypeArgument (carry = []) {
+    const types = carry.concat(
+      this._parseSingleTypeArgument()
+    )
+
+    if (!this._is(t.PIPE)) {
+      return new ast.UnionTypeArgument(
+        types
+      )
+    }
+
+    this._move()
+
+    return this._parseUnionTypeArgument(types)
+  }
+
+  /**
+   * Statement ::=
+   *   ( ReturnStatement
+   *   | IfStatement
+   *   | LetStatement
+   *   )
+   */
+  _parseStatement () {
+    switch (this._current.type) {
+      case t.RETURN_KEYWORD:
+        return this._parseReturnStatement()
+      case t.IF_KEYWORD:
+        return this._parseIfStatement()
+      case t.LET_KEYWORD:
+        return this._parseLetStatement()
+      default:
+        return this._parseExpression()
+    }
+  }
+
+  /**
+   * ReturnStatement ::=
+   *   RETURN_KEYWORD
+   *   Expression
+   */
+  _parseReturnStatement () {
+    const keyword = this._consume(t.RETURN_KEYWORD)
+    const expression = this._parseExpression()
+
+    return new ast.ReturnStatement(
+      keyword, expression
+    )
+  }
+
+  /**
+   * IfStatement ::=
+   *   IF_KEYWORD
+   *   Expression
+   *   FunctionBody
+   */
+  _parseIfStatement () {
+    const keyword = this._consume(t.IF_KEYWORD)
+    const expression = this._parseExpression()
+    const body = this._parseFunctionBody()
+
+    return new ast.IfStatement(
+      keyword, expression, body
+    )
+  }
+
+  /**
+   * LetStatement ::=
+   *   LET_KEYWORD
+   *   TypedPattern
+   *   ASSIGN_OPERATOR
+   *   Expression
+   */
+  _parseLetStatement () {
+    const keyword = this._consume(t.LET_KEYWORD)
+    const pattern = this._parseTypedPattern()
+    const operator = this._consume(t.ASSIGN_OPERATOR)
+    const expression = this._parseExpression()
+
+    return new ast.LetStatement(
+      keyword, pattern, operator, expression
+    )
+  }
+}

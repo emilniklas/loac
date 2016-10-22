@@ -1,0 +1,23 @@
+public f () -> Unit {}
+public f () -> Int {
+  return 123
+}
+public f () -> Int {
+  return 123
+}
+public f (value) -> Int | Float {
+  if value {
+    return 123
+  }
+  return 1.23
+}
+public f (value) -> Int {
+  if value {
+    return 123
+  }
+  return 123
+}
+/*public f () -> Int {
+  let i: Int = 123
+  return i
+}*/

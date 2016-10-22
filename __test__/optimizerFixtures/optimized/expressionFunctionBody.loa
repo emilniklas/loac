@@ -1,0 +1,3 @@
+public f () -> Int {
+  return 123
+}
