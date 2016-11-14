@@ -2,7 +2,6 @@ import * as ast from '../ast'
 import * as ir from '../ir'
 import OptimizerError from '../errors/OptimizerError'
 import { deepEquals } from '../utils'
-import Traverser from '../Traverser'
 
 export default class TypeInferenceOptimization {
   FunctionExpression (functionExpression, symbols) {
@@ -123,10 +122,10 @@ export default class TypeInferenceOptimization {
   }
 
   LetStatement (statement, symbols) {
-    const newSymbols = symbols
-      .set(statement.pattern.identifier.symbol.content, {
-        type: statement.pattern.typeArgument,
-        value: statement.expression
-      })
+    // const newSymbols = symbols
+    //   .set(statement.pattern.identifier.symbol.content, {
+    //     type: statement.pattern.typeArgument,
+    //     value: statement.expression
+    //   })
   }
 }

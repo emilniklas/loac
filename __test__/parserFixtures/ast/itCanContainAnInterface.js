@@ -2,9 +2,6 @@ import * as ast from '../../../src/ast'
 import * as t from '../../../src/tokens'
 import {
   tok,
-  symbol,
-  moduleIdentifier,
-  qualifiedIdentifier,
   simpleIdentifier
 } from '../helpers'
 

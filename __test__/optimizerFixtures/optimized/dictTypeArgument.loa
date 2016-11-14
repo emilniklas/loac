@@ -1,1 +1,3 @@
+use Loa.Core.Dict
+
 public f () -> Dict<T, U> {}

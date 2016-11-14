@@ -1,3 +1,9 @@
+use Loa.Core.Unit
+use Loa.Core.Tuple2
+use Loa.Core.Tuple3
+use Loa.Core.Tuple4
+use Loa.Core.Tuple5
+
 public f () -> Unit {}
 public f () -> T {}
 public f () -> Tuple2<T, U> {}

@@ -3,7 +3,8 @@ import * as ast from './ast'
 
 function token (type, content) {
   return {
-    type, content,
+    type,
+    content,
     location: ['<unknown>', NaN, NaN]
   }
 }
@@ -14,6 +15,8 @@ export function symbol (content) {
 
 export const RETURN_KEYWORD =
   token(t.RETURN_KEYWORD, 'return')
+export const USE_KEYWORD =
+  token(t.USE_KEYWORD, 'use')
 export const BEGIN_CURLY_BRACE =
   token(t.BEGIN_CURLY_BRACE, '{')
 export const END_CURLY_BRACE =
@@ -41,5 +44,27 @@ export function typeReference (name) {
     new ast.SimpleIdentifier(
       symbol(name)
     )
+  )
+}
+
+export function useStatement (qualifiedString) {
+  return new ast.UseStatement(
+    USE_KEYWORD,
+    qualifiedIdentifier(qualifiedString)
+  )
+}
+
+export function simpleIdentifier (string) {
+  return new ast.SimpleIdentifier(
+    symbol(string)
+  )
+}
+
+export function qualifiedIdentifier (string) {
+  let segments = string.split('.').map(simpleIdentifier)
+  const last = segments.pop()
+  return new ast.QualifiedIdentifier(
+    new ast.ModuleIdentifier(segments),
+    last
   )
 }

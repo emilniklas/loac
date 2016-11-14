@@ -26,6 +26,10 @@ export const FAT_ARROW = 'FAT_ARROW'
 export const ARROW = 'ARROW'
 export const STAR = 'STAR'
 export const PIPE = 'PIPE'
+export const AMPERSAND = 'AMPERSAND'
+export const DOUBLE_QUOTE = 'DOUBLE_QUOTE'
+export const SINGLE_QUOTE = 'SINGLE_QUOTE'
+export const ESCAPED_CHAR = 'ESCAPED_CHAR'
 
 export const ASSIGN_OPERATOR = 'ASSIGN_OPERATOR'
 
@@ -42,3 +46,4 @@ export const FLOAT_LITERAL = 'FLOAT_LITERAL'
 export const INTEGER_LITERAL = 'INTEGER_LITERAL'
 
 export const SYMBOL = 'SYMBOL'
+export const UNKNOWN = 'UNKNOWN'

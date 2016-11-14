@@ -1,8 +1,6 @@
 import Lexer from '../src/Lexer'
 import Parser from '../src/Parser'
 import Optimizer from '../src/Optimizer'
-import * as ast from '../src/ast'
-import * as t from '../src/tokens'
 
 import { readFileSync, readdirSync } from 'fs'
 import { resolve } from 'path'
@@ -15,7 +13,6 @@ const ext = /\.loa$/
 const bigLetter = /[A-Z]/g
 
 for (let rawFile of readdirSync(rawDir)) {
-
   if (!ext.test(rawFile)) {
     continue
   }
@@ -36,7 +33,7 @@ for (let rawFile of readdirSync(rawDir)) {
 
   test(testName, () => {
     if (raw == null || optimized == null) {
-      throw fail(`${camelName} did not load properly`)
+      throw new Error(`${camelName} did not load properly`)
     }
 
     expect(

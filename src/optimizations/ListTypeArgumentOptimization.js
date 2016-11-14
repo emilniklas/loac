@@ -1,7 +1,6 @@
 import TypeReference from '../ast/TypeReference'
 import SimpleIdentifier from '../ast/SimpleIdentifier'
 import TypeArguments from '../ast/TypeArguments'
-import { SYMBOL } from '../tokens'
 import * as ir from '../ir'
 
 export default class ListTypeArgumentOptimization {

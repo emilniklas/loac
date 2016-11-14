@@ -1,3 +1,5 @@
+use Loa.Core.Int
+
 public f () -> Int {
   return 123
 }

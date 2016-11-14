@@ -1,7 +1,5 @@
 import Lexer from '../src/Lexer'
 import Parser from '../src/Parser'
-import * as ast from '../src/ast'
-import * as t from '../src/tokens'
 
 import { readFileSync, readdirSync } from 'fs'
 import { resolve } from 'path'
@@ -14,7 +12,6 @@ const ext = /\.loa$/
 const bigLetter = /[A-Z]/g
 
 for (let codeFile of readdirSync(codeDir)) {
-
   if (!ext.test(codeFile)) {
     continue
   }
@@ -35,7 +32,7 @@ for (let codeFile of readdirSync(codeDir)) {
 
   test(testName, () => {
     if (code == null || ast == null) {
-      throw fail(`${camelName} did not load properly`)
+      throw new Error(`${camelName} did not load properly`)
     }
 
     expect(Parser.parse(Lexer.tokenize(code)))

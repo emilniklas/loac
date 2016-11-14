@@ -32,6 +32,10 @@ export default class Parser {
     return this._tokens[this._cursor]
   }
 
+  get _next () {
+    return this._tokens[this._cursor + 1]
+  }
+
   _expect (tokenType) {
     if (!this._is(tokenType)) {
       throw new ParserError(
@@ -46,13 +50,17 @@ export default class Parser {
     return this._current.type === tokenType
   }
 
+  _nextIs (tokenType) {
+    return this._next.type === tokenType
+  }
+
   _isEOF () {
     return this._is(t.EOF)
   }
 
   _isVisibility () {
-    return this._is(t.PUBLIC_KEYWORD)
-      || this._is(t.PRIVATE_KEYWORD)
+    return this._is(t.PUBLIC_KEYWORD) ||
+      this._is(t.PRIVATE_KEYWORD)
   }
 
   _multi (condition, parse) {
@@ -266,23 +274,17 @@ export default class Parser {
 
   /**
    * Assignment ::=
-   *   Pattern
-   *   TypeAnnotation?
+   *   TypedPattern
    *   (
    *     ASSIGN_OPERATOR
    *     Expression
    *   )?
    */
   _parseAssignment () {
-    const pattern = this._parsePattern()
-    const typeAnnotation = this._is(t.COLON)
-      ? this._parseTypeAnnotation()
-      : null
+    const pattern = this._parseTypedPattern()
 
     if (!this._is(t.ASSIGN_OPERATOR)) {
-      return new ast.Assignment(
-        pattern, typeAnnotation
-      )
+      return new ast.Assignment(pattern)
     }
 
     this._move() // =
@@ -290,7 +292,7 @@ export default class Parser {
     const expression = this._parseExpression()
 
     return new ast.Assignment(
-      pattern, typeAnnotation, expression
+      pattern, expression
     )
   }
 
@@ -324,7 +326,12 @@ export default class Parser {
    * Expression ::=
    *   ( IntegerLiteralExpression
    *   | FloatLiteralExpression
+   *   | ListLiteralExpression
+   *   | DictLiteralExpression
+   *   | StringLiteralExpression
+   *   | CharLiteralExpression
    *   | ValueExpression
+   *   | FunctionExpression
    *   )
    */
   _parseExpression () {
@@ -333,8 +340,16 @@ export default class Parser {
         return this._parseIntegerLiteralExpression()
       case t.FLOAT_LITERAL:
         return this._parseFloatLiteralExpression()
+      case t.BEGIN_SQUARE_BRACKET:
+        return this._parseListOrDictExpression()
+      case t.DOUBLE_QUOTE:
+        return this._parseStringLiteralExpression()
+      case t.SINGLE_QUOTE:
+        return this._parseCharLiteralExpression()
       case t.SYMBOL:
         return this._parseValueExpression()
+      case t.BEGIN_PAREN:
+        return this._parseFunctionExpression()
       default:
         this._parserError(
           'Expected an expression'
@@ -359,6 +374,47 @@ export default class Parser {
   _parseFloatLiteralExpression () {
     return new ast.FloatLiteralExpression(
       this._consume(t.FLOAT_LITERAL)
+    )
+  }
+
+  /**
+   * StringLiteralExpression ::=
+   *   DOUBLE_QUOTE
+   *   ( AnyToken
+   *   | StringInterpolation
+   *   )*
+   *   DOUBLE_QUOTE
+   */
+  _parseStringLiteralExpression () {
+    const beginQuote = this._consume(t.DOUBLE_QUOTE)
+    let parts = []
+    while (!this._is(t.DOUBLE_QUOTE)) {
+      if (this._is(t.BEGIN_CURLY_BRACE)) {
+        parts.push(this._parseStringInterpolation())
+      } else {
+        parts.push(this._move())
+      }
+    }
+    const endQuote = this._consume(t.DOUBLE_QUOTE)
+
+    return new ast.StringLiteralExpression(
+      beginQuote, parts, endQuote
+    )
+  }
+
+  /**
+   * StringInterpolation ::=
+   *   BEGIN_CURLY_BRACE
+   *   Expression
+   *   END_CURLY_BRACE
+   */
+  _parseStringInterpolation () {
+    const begin = this._consume(t.BEGIN_CURLY_BRACE)
+    const expression = this._parseExpression()
+    const end = this._consume(t.END_CURLY_BRACE)
+
+    return new ast.StringInterpolation(
+      begin, expression, end
     )
   }
 
@@ -475,7 +531,6 @@ export default class Parser {
     )
   }
 
-
   /**
    * FunctionExpression ::=
    *   ParameterList
@@ -500,16 +555,16 @@ export default class Parser {
    *   BlockFunctionBody
    */
   _parseFunctionBody () {
-      switch (this._current.type) {
-        case t.FAT_ARROW:
-          return this._parseExpressionFunctionBody()
-        case t.BEGIN_CURLY_BRACE:
-          return this._parseBlockFunctionBody()
-        default:
-          this._parserError(
-            'Expected "=>" or "{"'
-          )
-      }
+    switch (this._current.type) {
+      case t.FAT_ARROW:
+        return this._parseExpressionFunctionBody()
+      case t.BEGIN_CURLY_BRACE:
+        return this._parseBlockFunctionBody()
+      default:
+        this._parserError(
+          'Expected "=>" or "{"'
+        )
+    }
   }
 
   /**
@@ -659,7 +714,6 @@ export default class Parser {
       identifier, typeArguments
     )
   }
-
 
   /**
    * TypeArguments ::=
@@ -879,18 +933,27 @@ export default class Parser {
   /**
    * LetStatement ::=
    *   LET_KEYWORD
-   *   TypedPattern
-   *   ASSIGN_OPERATOR
-   *   Expression
+   *   ( Assignment
+   *   | FunctionDeclaration
+   *   )
    */
   _parseLetStatement () {
     const keyword = this._consume(t.LET_KEYWORD)
-    const pattern = this._parseTypedPattern()
-    const operator = this._consume(t.ASSIGN_OPERATOR)
-    const expression = this._parseExpression()
 
-    return new ast.LetStatement(
-      keyword, pattern, operator, expression
+    if (this._nextIs(t.BEGIN_PAREN)) {
+      return new ast.LetStatement(
+        keyword, this._parseFunctionDeclaration()
+      )
+    }
+
+    if (this._nextIs(t.COLON) || this._nextIs(t.ASSIGN_OPERATOR)) {
+      return new ast.LetStatement(
+        keyword, this._parseAssignment()
+      )
+    }
+
+    this._parserError(
+      'Expected a function declaration or an assignment'
     )
   }
 }

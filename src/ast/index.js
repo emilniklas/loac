@@ -8,6 +8,8 @@ import Visibility from './Visibility'
 import NamePattern from './NamePattern'
 import IntegerLiteralExpression from './IntegerLiteralExpression'
 import FloatLiteralExpression from './FloatLiteralExpression'
+import StringLiteralExpression from './StringLiteralExpression'
+import CharLiteralExpression from './CharLiteralExpression'
 import ValueExpression from './ValueExpression'
 import Assignment from './Assignment'
 import ConstantDeclaration from './ConstantDeclaration'
@@ -44,6 +46,8 @@ export {
   NamePattern,
   IntegerLiteralExpression,
   FloatLiteralExpression,
+  StringLiteralExpression,
+  CharLiteralExpression,
   ValueExpression,
   Assignment,
   ConstantDeclaration,
@@ -67,5 +71,5 @@ export {
   ReturnStatement,
   IfStatement,
   LetStatement,
-  TypedPattern,
+  TypedPattern
 }

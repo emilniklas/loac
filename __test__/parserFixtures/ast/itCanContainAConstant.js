@@ -13,10 +13,12 @@ export default new ast.Program(
     new ast.ConstantDeclaration(
       tok(t.CONST_KEYWORD, 'const', [1, 7]),
       new ast.Assignment(
-        new ast.NamePattern(
-          simpleIdentifier('myConstant', [1, 13]),
+        new ast.TypedPattern(
+          new ast.NamePattern(
+            simpleIdentifier('myConstant', [1, 13]),
+          ),
+          null
         ),
-        null,
         new ast.IntegerLiteralExpression(
           tok(t.INTEGER_LITERAL, '123', [1, 26])
         )

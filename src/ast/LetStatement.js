@@ -1,20 +1,16 @@
 /**
  * LetStatement ::=
  *   LET_KEYWORD
- *   TypedPattern
- *   ASSIGN_OPERATOR
- *   Expression
+ *   ( Assignment
+ *   | FunctionDeclaration
+ *   )
  */
 export default class LetStatement {
   constructor (
     keyword,
-    pattern,
-    operator,
-    expression
+    declaration
   ) {
     this.keyword = keyword
-    this.pattern = pattern
-    this.operator = operator
-    this.expression = expression
+    this.declaration = declaration
   }
 }

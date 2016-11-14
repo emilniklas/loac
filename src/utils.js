@@ -1,5 +1,6 @@
 export function deepEquals (a, b) {
   if (a == null || b == null) {
+    /* eslint eqeqeq:0 */
     return a == b
   }
 
@@ -12,11 +13,11 @@ export function deepEquals (a, b) {
   }
 
   if (Array.isArray(a)) {
-    return a.length === b.length
-        && a.reduce(
-          (success, _, index) => success && deepEquals(a[index], b[index]),
-          true
-        )
+    return a.length === b.length &&
+      a.reduce(
+        (success, _, index) => success && deepEquals(a[index], b[index]),
+        true
+      )
   }
 
   if (!deepEquals(Object.keys(a), Object.keys(b))) {

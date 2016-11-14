@@ -1,0 +1,10 @@
+module HelloWorld.Main
+
+use Loa.Env.Main
+use Loa.Env.Io
+
+public actor HelloWorld: Main {
+  public main (io: Io) -> *() {
+    wait io.print("Hello World")
+  }
+}

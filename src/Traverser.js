@@ -10,10 +10,14 @@ export default class Traverser {
   static traverse (ast, transform, symbols) {
     return new Traverser(
       ast, transform, symbols || SymbolTable.make()
-    )._traverseNormalize()
+    )._traverseRoot()
   }
 
-  _traverseNormalize () {
+  _traverseRoot () {
+    return this._traverse(this.ast, this.symbols)
+  }
+
+  _traverseChildren () {
     const copy = Object.create(this.ast.constructor.prototype)
 
     for (let field in this.ast) {
@@ -51,7 +55,7 @@ export default class Traverser {
 
   _nest (ast, symbols) {
     return new Traverser(ast, this.transform, symbols)
-      ._traverseNormalize()
+      ._traverseChildren()
   }
 
   _transform (node, symbols) {

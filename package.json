@@ -1,8 +1,28 @@
 {
   "devDependencies": {
+    "babel-cli": "^6.18.0",
     "babel-jest": "^16.0.0",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.16.0",
-    "jest-cli": "^16.0.1"
+    "jest-cli": "^16.0.1",
+    "standard": "^8.5.0"
   },
-  "jest": {}
+  "scripts": {
+    "test": "standard && jest",
+    "prepublish": "babel --out-dir dist src"
+  },
+  "bin": {
+    "loac": "bin/loac.js"
+  },
+  "main": "dist/index.js",
+  "jest": {},
+  "standard": {
+    "globals": [
+      "describe",
+      "test",
+      "expect"
+    ]
+  },
+  "dependencies": {
+    "yargs": "^6.4.0"
+  }
 }

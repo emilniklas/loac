@@ -11,19 +11,7 @@ import {
   PUBLIC_KEYWORD,
   DELEGATE_KEYWORD,
 
-  PERIOD,
-  COLON,
-  COMMA,
-  AT,
-  FAT_ARROW,
-  ARROW,
-
-  BEGIN_CURLY_BRACE,
-  END_CURLY_BRACE,
-  BEGIN_PAREN,
-  END_PAREN,
-
-  SYMBOL,
+  SYMBOL
 } from '../src/tokens'
 import Lexer from '../src/Lexer'
 

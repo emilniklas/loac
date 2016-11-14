@@ -30,7 +30,7 @@ export default class SymbolTable {
 
   has (symbol) {
     return this.symbols.reduce(
-      (success, reg) => success || symbol == reg.symbol,
+      (success, reg) => success || symbol === reg.symbol,
       false
     )
   }

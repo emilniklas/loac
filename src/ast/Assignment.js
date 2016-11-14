@@ -1,7 +1,6 @@
 /**
  * Assignment ::=
- *   Pattern
- *   TypeAnnotation?
+ *   TypedPattern
  *   (
  *     ASSIGN_OPERATOR
  *     Expression
@@ -10,11 +9,9 @@
 export default class Assignment {
   constructor (
     pattern,
-    typeAnnotation = null,
     expression = null
   ) {
     this.pattern = pattern
-    this.typeAnnotation = typeAnnotation
     this.expression = expression
   }
 }

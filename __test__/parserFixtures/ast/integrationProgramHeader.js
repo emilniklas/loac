@@ -58,10 +58,12 @@ export default new ast.Program(
       new ast.ConstantDeclaration(
         tok(t.CONST_KEYWORD, 'const', [6, 7]),
         new ast.Assignment(
-          new ast.NamePattern(
-            simpleIdentifier('someConst', [6, 13])
+          new ast.TypedPattern(
+            new ast.NamePattern(
+              simpleIdentifier('someConst', [6, 13])
+            ),
+            null
           ),
-          null,
           new ast.IntegerLiteralExpression(
             tok(t.INTEGER_LITERAL, '456', [6, 25])
           )

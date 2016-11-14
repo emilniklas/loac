@@ -1,7 +1,8 @@
 export default class References {
-  constructor (declaration, typeArgument, references = []) {
+  constructor (declaration, typeArgument, level, references = []) {
     this.declaration = declaration
     this.typeArgument = typeArgument
+    this.level = level
     this.references = references
   }
 
@@ -9,6 +10,7 @@ export default class References {
     return new References(
       this.declaration,
       this.typeArgument,
+      this.level,
       this.references.concat(reference)
     )
   }
