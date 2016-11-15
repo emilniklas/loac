@@ -1,7 +1,7 @@
 import * as t from './tokens'
 import * as ast from './ast'
 
-function token (type, content) {
+export function token (type, content) {
   return {
     type,
     content,
@@ -13,6 +13,8 @@ export function symbol (content) {
   return token(t.SYMBOL, content)
 }
 
+export const EOF =
+  token(t.EOF, '')
 export const RETURN_KEYWORD =
   token(t.RETURN_KEYWORD, 'return')
 export const USE_KEYWORD =
@@ -27,6 +29,13 @@ export const END_ANGLE_BRACKET =
   token(t.END_ANGLE_BRACKET, '>')
 export const ARROW =
   token(t.ARROW, '->')
+export const DASH =
+  token(t.DASH, '-')
+export const STAR =
+  token(t.STAR, '*')
+export const MINUS_SIGN = DASH
+export const PLUS_SIGN =
+  token(t.PLUS_SIGN, '+')
 
 export function integer (number) {
   return token(t.INTEGER_LITERAL, String(number))

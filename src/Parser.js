@@ -1,6 +1,7 @@
 import * as ast from './ast'
 import * as t from './tokens'
 import ParserError from './errors/ParserError'
+import ExpressionParser from './ExpressionParser'
 
 export default class Parser {
   constructor (
@@ -276,14 +277,14 @@ export default class Parser {
    * Assignment ::=
    *   TypedPattern
    *   (
-   *     ASSIGN_OPERATOR
+   *     EQUALS_SIGN
    *     Expression
    *   )?
    */
   _parseAssignment () {
     const pattern = this._parseTypedPattern()
 
-    if (!this._is(t.ASSIGN_OPERATOR)) {
+    if (!this._is(t.EQUALS_SIGN)) {
       return new ast.Assignment(pattern)
     }
 
@@ -335,26 +336,7 @@ export default class Parser {
    *   )
    */
   _parseExpression () {
-    switch (this._current.type) {
-      case t.INTEGER_LITERAL:
-        return this._parseIntegerLiteralExpression()
-      case t.FLOAT_LITERAL:
-        return this._parseFloatLiteralExpression()
-      case t.BEGIN_SQUARE_BRACKET:
-        return this._parseListOrDictExpression()
-      case t.DOUBLE_QUOTE:
-        return this._parseStringLiteralExpression()
-      case t.SINGLE_QUOTE:
-        return this._parseCharLiteralExpression()
-      case t.SYMBOL:
-        return this._parseValueExpression()
-      case t.BEGIN_PAREN:
-        return this._parseFunctionExpression()
-      default:
-        this._parserError(
-          'Expected an expression'
-        )
-    }
+    return new ExpressionParser(this).parse()
   }
 
   /**
@@ -484,7 +466,7 @@ export default class Parser {
    *   (DELEGATE_KEYWORD | STATIC_KEYWORD | CONST_KEYWORD)?
    *   SimpleIdentifier
    *   TypeAnnotation?
-   *   (ASSIGN_OPERATOR Expression)?
+   *   (EQUALS_SIGN Expression)?
    */
   _parseField () {
     const annotations = []
@@ -506,7 +488,7 @@ export default class Parser {
       ? this._parseTypeAnnotation()
       : null
 
-    const expression = this._is(t.ASSIGN_OPERATOR)
+    const expression = this._is(t.EQUALS_SIGN)
       ? this._move() && this._parseExpression()
       : null
 
@@ -946,7 +928,7 @@ export default class Parser {
       )
     }
 
-    if (this._nextIs(t.COLON) || this._nextIs(t.ASSIGN_OPERATOR)) {
+    if (this._nextIs(t.COLON) || this._nextIs(t.EQUALS_SIGN)) {
       return new ast.LetStatement(
         keyword, this._parseAssignment()
       )

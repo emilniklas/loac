@@ -5,7 +5,7 @@
  *   (DELEGATE_KEYWORD | STATIC_KEYWORD | CONST_KEYWORD)?
  *   SimpleIdentifier
  *   TypeAnnotation?
- *   (ASSIGN_OPERATOR Expression)?
+ *   (EQUALS_SIGN Expression)?
  */
 export default class Field {
   constructor (

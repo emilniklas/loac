@@ -34,6 +34,11 @@ import ReturnStatement from './ReturnStatement'
 import IfStatement from './IfStatement'
 import LetStatement from './LetStatement'
 import TypedPattern from './TypedPattern'
+import Operator from './Operator'
+import UnaryOperator from './UnaryOperator'
+import BinaryOperator from './BinaryOperator'
+import UnaryOperation from './UnaryOperation'
+import BinaryOperation from './BinaryOperation'
 
 export {
   Program,
@@ -71,5 +76,10 @@ export {
   ReturnStatement,
   IfStatement,
   LetStatement,
-  TypedPattern
+  TypedPattern,
+  Operator,
+  UnaryOperator,
+  BinaryOperator,
+  UnaryOperation,
+  BinaryOperation
 }

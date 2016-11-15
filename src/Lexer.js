@@ -95,6 +95,24 @@ export default class Lexer {
     if ((m = /^\blet\b/.exec(tail))) {
       return [t.LET_KEYWORD, m[0]]
     }
+    if ((m = /^\bor\b/.exec(tail))) {
+      return [t.OR_KEYWORD, m[0]]
+    }
+    if ((m = /^\band\b/.exec(tail))) {
+      return [t.AND_KEYWORD, m[0]]
+    }
+    if ((m = /^\bnot\b/.exec(tail))) {
+      return [t.NOT_KEYWORD, m[0]]
+    }
+    if ((m = /^\bwait\b/.exec(tail))) {
+      return [t.WAIT_KEYWORD, m[0]]
+    }
+    if ((m = /^\bas\b/.exec(tail))) {
+      return [t.AS_KEYWORD, m[0]]
+    }
+    if ((m = /^\bis\b/.exec(tail))) {
+      return [t.IS_KEYWORD, m[0]]
+    }
 
     if ((m = /^\./.exec(tail))) {
       return [t.PERIOD, m[0]]
@@ -132,9 +150,32 @@ export default class Lexer {
     if ((m = /^\\./.exec(tail))) {
       return [t.ESCAPED_CHAR, m[0]]
     }
-
+    if ((m = /^<=/.exec(tail))) {
+      return [t.REVERSE_FAT_ARROW, m[0]]
+    }
+    if ((m = /^>=/.exec(tail))) {
+      return [t.FUNNEL, m[0]]
+    }
+    if ((m = /^==/.exec(tail))) {
+      return [t.EQUALS_SIGN, m[0]]
+    }
     if ((m = /^=/.exec(tail))) {
-      return [t.ASSIGN_OPERATOR, m[0]]
+      return [t.EQUALS_SIGN, m[0]]
+    }
+    if ((m = /^\+/.exec(tail))) {
+      return [t.PLUS_SIGN, m[0]]
+    }
+    if ((m = /^-/.exec(tail))) {
+      return [t.DASH, m[0]]
+    }
+    if ((m = /^\//.exec(tail))) {
+      return [t.SLASH, m[0]]
+    }
+    if ((m = /^%/.exec(tail))) {
+      return [t.PERCENT_SIGN, m[0]]
+    }
+    if ((m = /^\^/.exec(tail))) {
+      return [t.CARET, m[0]]
     }
 
     if ((m = /^{/.exec(tail))) {

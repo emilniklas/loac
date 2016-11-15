@@ -2,7 +2,7 @@
  * Assignment ::=
  *   TypedPattern
  *   (
- *     ASSIGN_OPERATOR
+ *     EQUALS_SIGN
  *     Expression
  *   )?
  */
