@@ -48,6 +48,8 @@ export default class ExpressionParser {
       case t.PERIOD:
       case t.AS_KEYWORD:
       case t.IS_KEYWORD:
+      case t.TRUE_KEYWORD:
+      case t.FALSE_KEYWORD:
         return true
       default:
         return false
@@ -62,8 +64,11 @@ export default class ExpressionParser {
    *   | DictLiteralExpression
    *   | StringLiteralExpression
    *   | CharLiteralExpression
+   *   | TupleLiteralExpression
+   *   | BoolLiteralExpression
    *   | ValueExpression
    *   | FunctionExpression
+   *   | CallExpression
    *   )
    */
   _parseExpressionSegment () {
@@ -81,7 +86,10 @@ export default class ExpressionParser {
       case t.SYMBOL:
         return this._parser._parseValueExpression()
       case t.BEGIN_PAREN:
-        return this._parser._parseFunctionExpression()
+        return this._parser._parseTupleOrFunctionExpression()
+      case t.TRUE_KEYWORD:
+      case t.FALSE_KEYWORD:
+        return this._parser._parseBoolLiteralExpression()
 
       // Since a dash can be used as both a prefix
       // and an infix operator, we need to treat it as a
@@ -109,6 +117,11 @@ export default class ExpressionParser {
       case t.AS_KEYWORD:
       case t.IS_KEYWORD:
         return new ast.BinaryOperator(this._parser._move())
+
+      default:
+        this._parser._parserError(
+          'Expected an expression'
+        )
     }
   }
 
@@ -146,6 +159,27 @@ export default class ExpressionParser {
           }
           break
         case EXPECTS_OPERATOR:
+          if (segment instanceof ast.TupleLiteralExpression) {
+            if (hasBinary() && lastBinary().token.type === t.PERIOD) {
+              const rhs = operands.pop()
+              const lhs = operands.pop()
+              operands.push(
+                new ast.BinaryOperation(
+                  lhs,
+                  binary.pop(),
+                  rhs,
+                )
+              )
+            }
+            operands.push(
+              new ast.CallExpression(
+                operands.pop(),
+                segment
+              )
+            )
+            continue
+          }
+
           const operator = this._ensureBinaryOperator(segment)
 
           if (hasUnary() && lastUnary().precedes(operator)) {
@@ -212,7 +246,7 @@ export default class ExpressionParser {
 
   _ensureBinaryOperator (operator) {
     if (!(operator instanceof ast.BinaryOperator)) {
-      return new ast.UnaryOperator(operator.token)
+      return new ast.BinaryOperator(operator.token)
     }
     return operator
   }

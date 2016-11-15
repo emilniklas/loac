@@ -331,8 +331,11 @@ export default class Parser {
    *   | DictLiteralExpression
    *   | StringLiteralExpression
    *   | CharLiteralExpression
+   *   | TupleLiteralExpression
+   *   | BoolLiteralExpression
    *   | ValueExpression
    *   | FunctionExpression
+   *   | CallExpression
    *   )
    */
   _parseExpression () {
@@ -409,6 +412,75 @@ export default class Parser {
 
     return new ast.ValueExpression(
       identifier
+    )
+  }
+
+  _movePastParens () {
+    this._consume(t.BEGIN_PAREN)
+    while (true) {
+      if (this._is(t.END_PAREN)) {
+        this._move()
+        break
+      }
+      if (this._is(t.BEGIN_PAREN)) {
+        this._movePastParens()
+        continue
+      }
+      this._move()
+    }
+  }
+
+  _parseTupleOrFunctionExpression () {
+    const beforeParens = this._cursor
+    this._movePastParens()
+
+    const parse = this._is(t.FAT_ARROW)
+      ? this._parseFunctionExpression
+      : this._parseTupleLiteralExpression
+
+    this._cursor = beforeParens
+    return parse.call(this)
+  }
+
+  /**
+   * TupleLiteralExpression ::=
+   *   BEGIN_PAREN
+   *   (Expression COMMA?)*
+   *   END_PAREN
+   */
+  _parseTupleLiteralExpression () {
+    const begin = this._consume(t.BEGIN_PAREN)
+    const expressions = this._multi(
+      () => {
+        if (this._is(t.COMMA)) {
+          this._move()
+        }
+        return !this._is(t.END_PAREN)
+      },
+      this._parseExpression
+    )
+    const end = this._consume(t.END_PAREN)
+
+    return new ast.TupleLiteralExpression(
+      begin,
+      expressions,
+      end
+    )
+  }
+
+  /**
+   * BoolLiteralExpression ::=
+   *   TRUE_KEYWORD | FALSE_KEYWORD
+   */
+  _parseBoolLiteralExpression () {
+    if (!this._is(t.TRUE_KEYWORD) && !this._is(t.FALSE_KEYWORD)) {
+      this._parserError(
+        'Expected a boolean literal (true or false)'
+      )
+    }
+
+    return new ast.BoolLiteralExpression(
+      this._move()
     )
   }
 

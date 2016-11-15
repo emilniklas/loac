@@ -113,6 +113,12 @@ export default class Lexer {
     if ((m = /^\bis\b/.exec(tail))) {
       return [t.IS_KEYWORD, m[0]]
     }
+    if ((m = /^\btrue\b/.exec(tail))) {
+      return [t.TRUE_KEYWORD, m[0]]
+    }
+    if ((m = /^\bfalse\b/.exec(tail))) {
+      return [t.FALSE_KEYWORD, m[0]]
+    }
 
     if ((m = /^\./.exec(tail))) {
       return [t.PERIOD, m[0]]

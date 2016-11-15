@@ -13,29 +13,33 @@ export function symbol (content) {
   return token(t.SYMBOL, content)
 }
 
-export const EOF =
-  token(t.EOF, '')
-export const RETURN_KEYWORD =
-  token(t.RETURN_KEYWORD, 'return')
-export const USE_KEYWORD =
-  token(t.USE_KEYWORD, 'use')
-export const BEGIN_CURLY_BRACE =
-  token(t.BEGIN_CURLY_BRACE, '{')
-export const END_CURLY_BRACE =
-  token(t.END_CURLY_BRACE, '}')
-export const BEGIN_ANGLE_BRACKET =
-  token(t.BEGIN_ANGLE_BRACKET, '<')
-export const END_ANGLE_BRACKET =
-  token(t.END_ANGLE_BRACKET, '>')
-export const ARROW =
-  token(t.ARROW, '->')
-export const DASH =
-  token(t.DASH, '-')
-export const STAR =
-  token(t.STAR, '*')
+export const EOF = token(t.EOF, '')
+export const RETURN_KEYWORD = token(t.RETURN_KEYWORD, 'return')
+export const USE_KEYWORD = token(t.USE_KEYWORD, 'use')
+export const TRUE_KEYWORD = token(t.TRUE_KEYWORD, 'true')
+export const FALSE_KEYWORD = token(t.FALSE_KEYWORD, 'false')
+export const AND_KEYWORD = token(t.AND_KEYWORD, 'and')
+export const NOT_KEYWORD = token(t.NOT_KEYWORD, 'not')
+export const OR_KEYWORD = token(t.OR_KEYWORD, 'or')
+export const BEGIN_PAREN = token(t.BEGIN_PAREN, '(')
+export const END_PAREN = token(t.END_PAREN, ')')
+export const BEGIN_CURLY_BRACE = token(t.BEGIN_CURLY_BRACE, '{')
+export const END_CURLY_BRACE = token(t.END_CURLY_BRACE, '}')
+export const BEGIN_ANGLE_BRACKET = token(t.BEGIN_ANGLE_BRACKET, '<')
+export const END_ANGLE_BRACKET = token(t.END_ANGLE_BRACKET, '>')
+export const ARROW = token(t.ARROW, '->')
+export const DASH = token(t.DASH, '-')
+export const STAR = token(t.STAR, '*')
 export const MINUS_SIGN = DASH
-export const PLUS_SIGN =
-  token(t.PLUS_SIGN, '+')
+export const PLUS_SIGN = token(t.PLUS_SIGN, '+')
+export const PERIOD = token(t.PERIOD, '.')
+
+export const unitExpression =
+  new ast.TupleLiteralExpression(
+    BEGIN_PAREN,
+    [],
+    END_PAREN
+  )
 
 export function integer (number) {
   return token(t.INTEGER_LITERAL, String(number))

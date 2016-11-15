@@ -23,6 +23,8 @@ export const NOT_KEYWORD = 'NOT_KEYWORD'
 export const WAIT_KEYWORD = 'WAIT_KEYWORD'
 export const AS_KEYWORD = 'AS_KEYWORD'
 export const IS_KEYWORD = 'IS_KEYWORD'
+export const TRUE_KEYWORD = 'TRUE_KEYWORD'
+export const FALSE_KEYWORD = 'FALSE_KEYWORD'
 
 export const PERIOD = 'PERIOD'
 export const COLON = 'COLON'

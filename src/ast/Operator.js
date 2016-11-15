@@ -60,56 +60,58 @@ export default class Operator {
   get precedence () {
     switch (this.token.type) {
       case t.DOUBLE_EQUALS:
-        return 1
+        return 2
       case t.BEGIN_ANGLE_BRACKET:
-        return 1
+        return 2
       case t.END_ANGLE_BRACKET:
-        return 1
+        return 2
       case t.REVERSE_FAT_ARROW:
-        return 1
+        return 2
       case t.FUNNEL:
-        return 1
+        return 2
       case t.AND_KEYWORD:
         return 0
       case t.OR_KEYWORD:
         return 0
       case t.NOT_KEYWORD:
-        return 6
+        return 7
       case t.DASH:
         throw new Error(
           'This operator can either be a subtraction or a negation, ' +
           'please cast it to either a UnaryOperator or a BinaryOperator'
         )
       case t.PLUS_SIGN:
-        return 3
+        return 4
       case t.SLASH:
-        return 4
-      case t.STAR:
-        return 4
-      case t.PERCENT_SIGN:
-        return 4
-      case t.CARET:
         return 5
+      case t.STAR:
+        return 5
+      case t.PERCENT_SIGN:
+        return 5
+      case t.CARET:
+        return 6
       case t.PERIOD:
-        return 9
+        return 10
       case t.WAIT_KEYWORD:
-        return 7
+        return 1
       case t.AS_KEYWORD:
-        return 2
+        return 3
       case t.IS_KEYWORD:
-        return 2
+        return 3
     }
   }
 
   precedes (other) {
-    if (other.precedence > this.precedence) {
+    if (other.precedence < this.precedence) {
       return true
-    } else if (other.precedence < this.precedence) {
+    } else if (other.precedence > this.precedence) {
       return false
-    } else if (other.associativity === LEFT_TO_RIGHT) {
+    } else if (this.associativity === LEFT_TO_RIGHT) {
+      return true
+    } else if (this.associativity === RIGHT_TO_LEFT) {
       return false
     } else {
-      return true
+      throw new Error(`${other.token.type} is not a valid operator`)
     }
   }
 }
