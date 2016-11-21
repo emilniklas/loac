@@ -1,7 +1,11 @@
 {
+  "name": "loac",
+  "version": "0.0.0",
   "devDependencies": {
     "babel-cli": "^6.18.0",
+    "babel-eslint": "^7.1.1",
     "babel-jest": "^16.0.0",
+    "babel-plugin-transform-class-properties": "^6.19.0",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.16.0",
     "jest-cli": "^16.0.1",
     "standard": "^8.5.0"
@@ -16,6 +20,7 @@
   "main": "dist/index.js",
   "jest": {},
   "standard": {
+    "parser": "babel-eslint",
     "globals": [
       "describe",
       "test",
@@ -23,6 +28,7 @@
     ]
   },
   "dependencies": {
+    "standard": "^8.5.0",
     "yargs": "^6.4.0"
   }
 }

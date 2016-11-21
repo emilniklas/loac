@@ -8,4 +8,12 @@ export default class BoolLiteralExpression {
   ) {
     this.token = token
   }
+
+  get begin () {
+    return this.token
+  }
+
+  get end () {
+    return this.token
+  }
 }

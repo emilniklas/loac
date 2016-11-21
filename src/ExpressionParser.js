@@ -1,6 +1,10 @@
 import Parser from './Parser'
 import * as t from './tokens'
 import * as ast from './ast'
+import ParserError from './errors/ParserError'
+
+const EXPECTS_OPERAND = 'EXPECTS_OPERAND'
+const EXPECTS_OPERATOR = 'EXPECTS_OPERATOR'
 
 export default class ExpressionParser {
   constructor (parser) {
@@ -8,19 +12,29 @@ export default class ExpressionParser {
   }
 
   static parse (tokens) {
-    return new ExpressionParser(new Parser(tokens))
+    return new ExpressionParser(new Parser('<unknown>', '', tokens))
       .parse()
   }
 
   parse () {
     let segments = []
-    while (this._isExpressionSegment) {
-      segments.push(this._parseExpressionSegment())
+
+    while (this._isExpressionHead || this._isOperator) {
+      const segment = this._parseExpressionSegment()
+      segments.push(segment)
+
+      if (
+        !(segment instanceof ast.Operator) &&
+        this._isExpressionHead &&
+        !this._parser._is(t.BEGIN_PAREN)
+      ) {
+        break
+      }
     }
     return this._parseOperatorExpressionTree(segments)
   }
 
-  get _isExpressionSegment () {
+  get _isExpressionHead () {
     switch (this._parser._current.type) {
       case t.INTEGER_LITERAL:
       case t.FLOAT_LITERAL:
@@ -28,6 +42,17 @@ export default class ExpressionParser {
       case t.DOUBLE_QUOTE:
       case t.SINGLE_QUOTE:
       case t.SYMBOL:
+      case t.BEGIN_PAREN:
+      case t.TRUE_KEYWORD:
+      case t.FALSE_KEYWORD:
+        return true
+      default:
+        return false
+    }
+  }
+
+  get _isOperator () {
+    switch (this._parser._current.type) {
       case t.BEGIN_PAREN:
       case t.DASH:
       case t.NOT_KEYWORD:
@@ -48,8 +73,6 @@ export default class ExpressionParser {
       case t.PERIOD:
       case t.AS_KEYWORD:
       case t.IS_KEYWORD:
-      case t.TRUE_KEYWORD:
-      case t.FALSE_KEYWORD:
         return true
       default:
         return false
@@ -126,10 +149,8 @@ export default class ExpressionParser {
   }
 
   _parseOperatorExpressionTree (allSegments) {
-    const EXPECTS_OPERAND = 'EXPECTS_OPERAND'
-    const EXPECTS_OPERATOR = 'EXPECTS_OPERATOR'
     let state = EXPECTS_OPERAND
-    let segments = allSegments
+    let segments = allSegments.concat()
     let binary = []
     let unary = []
     let operands = []

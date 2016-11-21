@@ -11,4 +11,12 @@ export default class UseStatement {
     this.useKeyword = useKeyword
     this.qualifiedIdentifier = qualifiedIdentifier
   }
+
+  get begin () {
+    return this.useKeyword
+  }
+
+  get end () {
+    return this.qualifiedIdentifier.end
+  }
 }

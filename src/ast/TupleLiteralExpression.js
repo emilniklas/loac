@@ -14,4 +14,12 @@ export default class TupleLiteralExpression {
     this.expressions = expressions
     this.endParen = endParen
   }
+
+  get begin () {
+    return this.beginParen
+  }
+
+  get end () {
+    return this.endParen
+  }
 }

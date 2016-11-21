@@ -1,9 +1,9 @@
 import * as ast from '../ast'
 import * as ir from '../ir'
-import OptimizerError from '../errors/OptimizerError'
 import { deepEquals } from '../utils'
+import Optimization from './Optimization'
 
-export default class TypeInferenceOptimization {
+export default class TypeInferenceOptimization extends Optimization {
   FunctionExpression (functionExpression, symbols) {
     if (functionExpression.returnType != null) {
       return functionExpression
@@ -32,9 +32,7 @@ export default class TypeInferenceOptimization {
     if (body instanceof ast.BlockFunctionBody) {
       return this._inferFromBlockFunctionBody(body, symbols)
     }
-    throw new OptimizerError(
-      body, 'Expected a function body'
-    )
+    this.error(body, 'Expected a function body')
   }
 
   _inferFromBlockFunctionBody (body, symbols) {
@@ -109,15 +107,25 @@ export default class TypeInferenceOptimization {
     }
 
     if (expression instanceof ast.ValueExpression) {
-      const symbol = expression.symbol.content
+      const symbol = expression.identifier.symbol.content
       const registry = symbols.get(symbol)
       if (registry != null) {
         return registry.type
       }
     }
 
-    throw new OptimizerError(
-      expression, 'Could not infer type'
+    if (expression instanceof ast.TupleLiteralExpression) {
+      if (expression.expressions.length === 0) {
+        return new ast.TypeReference(
+          new ast.SimpleIdentifier(ir.symbol('Unit'))
+        )
+      }
+    }
+
+    this.error(expression, 'Could not infer type')
+
+    return new ast.TypeReference(
+      new ast.SimpleIdentifier(ir.symbol('Any'))
     )
   }
 

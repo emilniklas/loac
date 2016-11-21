@@ -14,4 +14,12 @@ export default class ObjectBody {
     this.fields = fields
     this.endCurly = endCurly
   }
+
+  get begin () {
+    return this.beginCurly
+  }
+
+  get end () {
+    return this.endCurly
+  }
 }

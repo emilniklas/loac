@@ -23,4 +23,18 @@ export default class Field {
     this.typeAnnotation = typeAnnotation
     this.expression = expression
   }
+
+  get begin () {
+    return this.annotations.length > 1
+      ? this.annotations[0].begin
+      : this.visibility == null ? this.keyword : this.visibility.begin
+  }
+
+  get end () {
+    return (
+      this.expression ||
+      this.typeAnnotation ||
+      this.identifier
+    ).end
+  }
 }

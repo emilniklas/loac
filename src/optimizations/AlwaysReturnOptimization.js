@@ -19,4 +19,10 @@ export default class AlwaysReturnOptimization {
       body.closeCurly
     )
   }
+
+  _doesNotContainReturnStatement ({ statements }) {
+    return statements
+      .filter((f) => f instanceof ast.ReturnStatement)
+      .length === 0
+  }
 }

@@ -12,4 +12,12 @@ export default class QualifiedIdentifer {
     this.moduleIdentifier = moduleIdentifier
     this.simpleIdentifier = simpleIdentifier
   }
+
+  get begin () {
+    return this.moduleIdentifier.begin
+  }
+
+  get end () {
+    return this.simpleIdentifier.end
+  }
 }

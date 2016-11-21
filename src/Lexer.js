@@ -1,5 +1,4 @@
 import * as t from './tokens'
-import SyntaxError from './errors/SyntaxError'
 
 export default class Lexer {
   constructor (code, tokens = [], cursor = 0) {
@@ -71,11 +70,11 @@ export default class Lexer {
     if ((m = /^\bactor\b/.exec(tail))) {
       return [t.ACTOR_KEYWORD, m[0]]
     }
-    if ((m = /^\binterface\b/.exec(tail))) {
-      return [t.INTERFACE_KEYWORD, m[0]]
-    }
     if ((m = /^\bconst\b/.exec(tail))) {
       return [t.CONST_KEYWORD, m[0]]
+    }
+    if ((m = /^\binterface\b/.exec(tail))) {
+      return [t.INTERFACE_KEYWORD, m[0]]
     }
     if ((m = /^\bprivate\b/.exec(tail))) {
       return [t.PRIVATE_KEYWORD, m[0]]
@@ -135,17 +134,23 @@ export default class Lexer {
     if ((m = /^=>/.exec(tail))) {
       return [t.FAT_ARROW, m[0]]
     }
+    if ((m = /^<=/.exec(tail))) {
+      return [t.REVERSE_FAT_ARROW, m[0]]
+    }
+    if ((m = /^>=/.exec(tail))) {
+      return [t.FUNNEL, m[0]]
+    }
     if ((m = /^->/.exec(tail))) {
       return [t.ARROW, m[0]]
     }
     if ((m = /^\*/.exec(tail))) {
       return [t.STAR, m[0]]
     }
-    if ((m = /^\|/.exec(tail))) {
-      return [t.PIPE, m[0]]
-    }
     if ((m = /^&/.exec(tail))) {
       return [t.AMPERSAND, m[0]]
+    }
+    if ((m = /^\|/.exec(tail))) {
+      return [t.PIPE, m[0]]
     }
     if ((m = /^"/.exec(tail))) {
       return [t.DOUBLE_QUOTE, m[0]]
@@ -156,14 +161,8 @@ export default class Lexer {
     if ((m = /^\\./.exec(tail))) {
       return [t.ESCAPED_CHAR, m[0]]
     }
-    if ((m = /^<=/.exec(tail))) {
-      return [t.REVERSE_FAT_ARROW, m[0]]
-    }
-    if ((m = /^>=/.exec(tail))) {
-      return [t.FUNNEL, m[0]]
-    }
     if ((m = /^==/.exec(tail))) {
-      return [t.EQUALS_SIGN, m[0]]
+      return [t.DOUBLE_EQUALS, m[0]]
     }
     if ((m = /^=/.exec(tail))) {
       return [t.EQUALS_SIGN, m[0]]

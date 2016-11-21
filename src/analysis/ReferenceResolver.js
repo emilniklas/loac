@@ -15,6 +15,8 @@ export default class ReferenceResolver {
 
   _resolve () {
     switch (this._ast.constructor) {
+      case ast.Program:
+        return this._resolveProgram()
       case ast.FunctionExpression:
         return this._resolveFunctionExpression()
       case ast.BlockFunctionBody:
@@ -63,6 +65,21 @@ export default class ReferenceResolver {
     return this._copy({
       references: this._references.concat(references)
     })
+  }
+
+  _resolveProgram () {
+    return this._ast.topLevelDeclarations.reduce(
+      (resolver, declaration) => resolver
+        ._move(declaration)
+        ._resolveTopLevelDeclaration(),
+      this
+    )
+  }
+
+  _resolveTopLevelDeclaration () {
+    return this
+      ._move(this._ast.declaration)
+      ._resolve()
   }
 
   _resolveFunctionExpression () {
@@ -130,11 +147,13 @@ export default class ReferenceResolver {
     if (this._alreadyAdded(value)) {
       return this
     }
-    const [, references] = this._references.reduceRight(([done, references], r) => {
+    const [foundDeclaration, references] = this._references.reduceRight(([done, references], r) => {
       const hasntFoundMatch = !done
-      const hasSameSymbol =
-        r.declaration.identifier.symbol.content ===
-          value.identifier.symbol.content
+      const hasSameSymbol = r.declaration == null
+        ? r.references[0].identifier.symbol.content ===
+            value.identifier.symbol.content
+        : r.declaration.identifier.symbol.content ===
+            value.identifier.symbol.content
       const isNotOutOfScope = r.level <= this._level
 
       if (
@@ -148,6 +167,13 @@ export default class ReferenceResolver {
       }
       return [done, [r].concat(references)]
     }, [false, []])
+
+    if (!foundDeclaration) {
+      return this._load([
+        new References(null, null, this._level)
+          .addReference(value)
+      ])
+    }
 
     return this._copy({
       references

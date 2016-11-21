@@ -14,4 +14,14 @@ export default class Assignment {
     this.pattern = pattern
     this.expression = expression
   }
+
+  get begin () {
+    return this.pattern.begin
+  }
+
+  get end () {
+    return this.expression == null
+      ? this.pattern.end
+      : this.expression.end
+  }
 }

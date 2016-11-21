@@ -11,4 +11,12 @@ export default class FutureTypeArgument {
     this.star = star
     this.typeArgument = typeArgument
   }
+
+  get begin () {
+    return this.star
+  }
+
+  get end () {
+    return this.typeArgument.end
+  }
 }

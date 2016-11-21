@@ -80,7 +80,11 @@ function assertPaths (code, paths) {
 }
 
 function statements (code) {
-  const parser = Parser.load(Lexer.tokenize(`{${code}}`))
+  const parser = Parser.load(
+    '<unknown>',
+    code,
+    Lexer.tokenize(`{${code}}`)
+  )
 
   return removeLocation(
     parser._parseBlockFunctionBody()

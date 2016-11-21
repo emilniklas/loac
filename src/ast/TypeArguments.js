@@ -14,4 +14,12 @@ export default class TypeArguments {
     this.typeArguments = typeArguments
     this.endBracket = endBracket
   }
+
+  get begin () {
+    return this.beginBracket
+  }
+
+  get end () {
+    return this.endBracket
+  }
 }

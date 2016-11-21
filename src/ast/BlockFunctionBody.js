@@ -14,4 +14,12 @@ export default class BlockFunctionBody {
     this.statements = statements
     this.closeCurly = closeCurly
   }
+
+  get begin () {
+    return this.beginCurly
+  }
+
+  get end () {
+    return this.endCurly
+  }
 }

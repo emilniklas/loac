@@ -11,4 +11,12 @@ export default class ExpressionFunctionBody {
     this.arrow = arrow
     this.expression = expression
   }
+
+  get begin () {
+    return this.arrow
+  }
+
+  get end () {
+    return this.expression.end
+  }
 }

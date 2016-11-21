@@ -17,4 +17,12 @@ export default class InterfaceDeclaration {
     this.interfaces = interfaces
     this.body = body
   }
+
+  get begin () {
+    return this.keyword
+  }
+
+  get end () {
+    return (this.body || this.interfaces || this.identifier).end
+  }
 }

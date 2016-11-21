@@ -8,4 +8,12 @@ export default class SimpleIdentifer {
   ) {
     this.symbol = symbol
   }
+
+  get begin () {
+    return this.symbol
+  }
+
+  get end () {
+    return this.symbol
+  }
 }

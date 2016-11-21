@@ -35,7 +35,7 @@ for (let codeFile of readdirSync(codeDir)) {
       throw new Error(`${camelName} did not load properly`)
     }
 
-    expect(Parser.parse(Lexer.tokenize(code)))
+    expect(Parser.parse('<unknown>', code, Lexer.tokenize(code)))
       .toEqual(ast)
   })
 }

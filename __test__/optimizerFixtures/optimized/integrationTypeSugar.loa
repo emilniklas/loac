@@ -2,4 +2,4 @@ use Loa.Core.Tuple2
 use Loa.Core.Future
 use Loa.Core.Dict
 
-public f () -> Tuple2<Future<Dict<Tuple2<T1, T2>, T3>>, T4<T5>> {}
+public f () -> Tuple2<Future<Dict<Tuple2<T1, T2>, T3>>, T4<T5>> { return () }

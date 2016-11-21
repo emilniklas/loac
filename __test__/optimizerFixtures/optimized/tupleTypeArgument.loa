@@ -4,9 +4,9 @@ use Loa.Core.Tuple3
 use Loa.Core.Tuple4
 use Loa.Core.Tuple5
 
-public f () -> Unit {}
-public f () -> T {}
-public f () -> Tuple2<T, U> {}
-public f () -> Tuple3<T, U, V> {}
-public f () -> Tuple4<T, U, V, X> {}
-public f () -> Tuple5<T, U, V, X, Y> {}
+public f () -> Unit { return () }
+public f () -> T { return () }
+public f () -> Tuple2<T, U> { return () }
+public f () -> Tuple3<T, U, V> { return () }
+public f () -> Tuple4<T, U, V, X> { return () }
+public f () -> Tuple5<T, U, V, X, Y> { return () }

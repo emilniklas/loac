@@ -19,4 +19,12 @@ export default class TopLevelDeclaration {
     this.visibility = visibility
     this.declaration = declaration
   }
+
+  get begin () {
+    return (this.annotations[0] || this.visibility).begin
+  }
+
+  get end () {
+    return this.declaration.end
+  }
 }

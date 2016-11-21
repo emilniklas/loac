@@ -13,6 +13,14 @@ export default class Operator {
     this.token = token
   }
 
+  get begin () {
+    return this.token
+  }
+
+  get end () {
+    return this.token
+  }
+
   get associativity () {
     switch (this.token.type) {
       case t.DOUBLE_EQUALS:

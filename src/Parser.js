@@ -5,20 +5,29 @@ import ExpressionParser from './ExpressionParser'
 
 export default class Parser {
   constructor (
+    filename,
+    code,
     tokens,
     cursor = 0
   ) {
+    this._filename = filename
+    this._code = code
     this._tokens = tokens
+    if (this._tokens == null) {
+      throw new Error('WARN')
+    }
     this._cursor = cursor
   }
 
-  static parse (tokens) {
-    return this.load(tokens)
+  static parse (filename, code, tokens) {
+    return this.load(filename, code, tokens)
       ._parseProgram()
   }
 
-  static load (tokens) {
+  static load (filename, code, tokens) {
     return new Parser(
+      filename,
+      code,
       tokens.filter((tk) => {
         return tk.type !== t.WHITESPACE
       }).filter((tk) => {
@@ -40,6 +49,8 @@ export default class Parser {
   _expect (tokenType) {
     if (!this._is(tokenType)) {
       throw new ParserError(
+        this._filename,
+        this._code,
         this._tokens,
         this._cursor,
         `Expected a ${tokenType} but saw a ${this._current.type}`

@@ -8,4 +8,12 @@ export default class FloatLiteralExpression {
   ) {
     this.literal = literal
   }
+
+  get begin () {
+    return this.literal
+  }
+
+  get end () {
+    return this.literal
+  }
 }

@@ -172,6 +172,48 @@ describe('ReferenceResolver', () => {
       )
     ])
   })
+
+  test('undefined reference', () => {
+    assertFunctionReferences(`
+      () {
+        return a
+      }
+    `, [
+      new References(
+        null, null, 1,
+        [ reference('a', [3, 15]) ]
+      )
+    ])
+  })
+
+  test('undefined reference and defined reference with same name', () => {
+    assertFunctionReferences(`
+      (a) {
+        if a {
+          let b = 123
+          return b
+        }
+        return b
+      }
+    `, [
+      new References(
+        declaration('a', [2, 7]), null, 0,
+        [
+          reference('a', [3, 11]),
+        ]
+      ),
+      new References(
+        declaration('b', [4, 14]), null, 2,
+        [
+          reference('b', [5, 17]),
+        ]
+      ),
+      new References(
+        null, null, 1,
+        [ reference('b', [7, 15]) ]
+      )
+    ])
+  })
 })
 
 function declaration (content, [line, column]) {
@@ -200,7 +242,7 @@ function assertFunctionReferences (code, expected) {
 
 function functionReferences (code) {
   return ReferenceResolver.resolve(
-    Parser.load(Lexer.tokenize(code))
+    Parser.load('<unknown>', code, Lexer.tokenize(code))
       ._parseFunctionExpression()
   )
 }

@@ -14,4 +14,12 @@ export default class StringInterpolation {
     this.expression = expression
     this.endCurly = endCurly
   }
+
+  get begin () {
+    return this.beginCurly
+  }
+
+  get end () {
+    return this.endCurly
+  }
 }

@@ -1,0 +1,5 @@
+use Loa.Core.Unit
+
+public f () -> Unit {
+  return ()
+}

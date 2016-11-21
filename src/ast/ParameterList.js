@@ -14,4 +14,12 @@ export default class ParameterList {
     this.patterns = patterns
     this.endParen = endParen
   }
+
+  get begin () {
+    return this.beginParen
+  }
+
+  get end () {
+    return this.endParen
+  }
 }

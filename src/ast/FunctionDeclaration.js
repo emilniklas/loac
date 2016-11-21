@@ -11,4 +11,12 @@ export default class FunctionDeclaration {
     this.identifier = identifier
     this.functionExpression = functionExpression
   }
+
+  get begin () {
+    return this.identifier.begin
+  }
+
+  get end () {
+    return this.functionExpression.end
+  }
 }

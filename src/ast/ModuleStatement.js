@@ -11,4 +11,12 @@ export default class ModuleStatement {
     this.moduleKeyword = moduleKeyword
     this.moduleIdentifier = moduleIdentifier
   }
+
+  get begin () {
+    return this.moduleKeyword
+  }
+
+  get end () {
+    return this.moduleIdentifier.end
+  }
 }

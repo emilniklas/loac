@@ -14,4 +14,12 @@ export default class TupleTypeArgument {
     this.typeArguments = typeArguments
     this.endParen = endParen
   }
+
+  get begin () {
+    return this.beginParen
+  }
+
+  get end () {
+    return this.endParen
+  }
 }

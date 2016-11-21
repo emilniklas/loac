@@ -11,4 +11,12 @@ export default class ReturnStatement {
     this.keyword = keyword
     this.expression = expression
   }
+
+  get begin () {
+    return this.keyword
+  }
+
+  get end () {
+    return this.expression.end
+  }
 }

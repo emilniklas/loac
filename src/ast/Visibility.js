@@ -9,4 +9,12 @@ export default class Visibility {
   ) {
     this.keyword = keyword
   }
+
+  get begin () {
+    return this.keyword
+  }
+
+  get end () {
+    return this.keyword
+  }
 }

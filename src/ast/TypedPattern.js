@@ -11,4 +11,12 @@ export default class TypedPattern {
     this.pattern = pattern
     this.typeArgument = typeArgument
   }
+
+  get begin () {
+    return this.pattern.begin
+  }
+
+  get end () {
+    return (this.typeArgument || this.pattern).end
+  }
 }

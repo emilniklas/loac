@@ -8,4 +8,12 @@ export default class IntegerLiteralExpression {
   ) {
     this.literal = literal
   }
+
+  get begin () {
+    return this.literal
+  }
+
+  get end () {
+    return this.literal
+  }
 }

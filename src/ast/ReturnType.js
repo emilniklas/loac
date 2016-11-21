@@ -11,4 +11,12 @@ export default class ReturnType {
     this.arrow = arrow
     this.typeArgument = typeArgument
   }
+
+  get begin () {
+    return this.arrow
+  }
+
+  get end () {
+    return this.typeArgument.end
+  }
 }

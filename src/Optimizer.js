@@ -5,23 +5,30 @@ import FutureTypeArgumentOptimization from './optimizations/FutureTypeArgumentOp
 import ExpressionFunctionBodyOptimization from './optimizations/ExpressionFunctionBodyOptimization'
 import TypeInferenceOptimization from './optimizations/TypeInferenceOptimization'
 import CoreLibImportInjectionOptimization from './optimizations/CoreLibImportInjectionOptimization'
+import AlwaysReturnOptimization from './optimizations/AlwaysReturnOptimization'
+import ResolveReferencesOptimization from './optimizations/ResolveReferencesOptimization'
+
 import Traverser from './Traverser'
+import MessageAggregator from './MessageAggregator'
 
 export default class Optimizer {
-  constructor (ast) {
+  constructor (ast, messages) {
     this.ast = ast
+    this._messages = messages
   }
 
-  static optimize (ast) {
+  static optimize (filename, code, ast, messages = new MessageAggregator()) {
     const coreLibImportInjectionOptimization =
-      new CoreLibImportInjectionOptimization()
-    return new Optimizer(ast)
-      .apply(new ListTypeArgumentOptimization())
-      .apply(new DictTypeArgumentOptimization())
-      .apply(new TupleTypeArgumentOptimization())
-      .apply(new FutureTypeArgumentOptimization())
-      .apply(new ExpressionFunctionBodyOptimization())
-      .apply(new TypeInferenceOptimization())
+      new CoreLibImportInjectionOptimization(filename, code, messages)
+    return new Optimizer(ast, messages)
+      .apply(new ExpressionFunctionBodyOptimization(filename, code, messages))
+      .apply(new AlwaysReturnOptimization(filename, code, messages))
+      .apply(new ListTypeArgumentOptimization(filename, code, messages))
+      .apply(new DictTypeArgumentOptimization(filename, code, messages))
+      .apply(new TupleTypeArgumentOptimization(filename, code, messages))
+      .apply(new FutureTypeArgumentOptimization(filename, code, messages))
+      .apply(new ResolveReferencesOptimization(filename, code, messages))
+      .apply(new TypeInferenceOptimization(filename, code, messages))
       .apply(coreLibImportInjectionOptimization.read)
       .apply(coreLibImportInjectionOptimization.write)
       .ast
@@ -40,6 +47,6 @@ export default class Optimizer {
       return node
     })
 
-    return new Optimizer(ast)
+    return new Optimizer(ast, this._messages)
   }
 }

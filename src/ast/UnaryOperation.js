@@ -10,4 +10,12 @@ export default class UnaryOperation {
     this.operator = operator
     this.expression = expression
   }
+
+  get begin () {
+    return this.operator.begin
+  }
+
+  get end () {
+    return this.expression.end
+  }
 }

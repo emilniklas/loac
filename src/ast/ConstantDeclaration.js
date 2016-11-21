@@ -11,4 +11,12 @@ export default class ConstantDeclaration {
     this.keyword = keyword
     this.assignment = assignment
   }
+
+  get begin () {
+    return this.keyword
+  }
+
+  get end () {
+    return this.assignment.end
+  }
 }

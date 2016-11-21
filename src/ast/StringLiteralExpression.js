@@ -16,4 +16,12 @@ export default class StringLiteralExpression {
     this.parts = parts
     this.endQuote = endQuote
   }
+
+  get begin () {
+    return this.beginQuote
+  }
+
+  get end () {
+    return this.endQuote
+  }
 }

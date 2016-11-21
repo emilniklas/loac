@@ -20,4 +20,12 @@ export default class DictTypeArgument {
     this.valueTypeArgument = valueTypeArgument
     this.endBracket = endBracket
   }
+
+  get begin () {
+    return this.beginBracket
+  }
+
+  get end () {
+    return this.endBracket
+  }
 }

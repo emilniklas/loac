@@ -14,4 +14,12 @@ export default class IfStatement {
     this.expression = expression
     this.body = body
   }
+
+  get begin () {
+    return this.keyword
+  }
+
+  get end () {
+    return this.body.end
+  }
 }

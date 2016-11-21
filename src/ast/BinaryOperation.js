@@ -12,4 +12,12 @@ export default class BinaryOperation {
     this.operator = operator
     this.rhs = rhs
   }
+
+  get begin () {
+    return this.lhs.begin
+  }
+
+  get end () {
+    return this.rhs.end
+  }
 }

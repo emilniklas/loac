@@ -2,7 +2,9 @@ use Loa.Core.Unit
 use Loa.Core.Int
 use Loa.Core.Float
 
-public f () -> Unit {}
+public f () -> Unit {
+  return ()
+}
 public f () -> Int {
   return 123
 }
