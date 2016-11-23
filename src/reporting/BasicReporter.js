@@ -51,7 +51,7 @@ export default class BasicReporter {
         })
 
       default:
-        return message.message
+        return message.stack
     }
   }
 

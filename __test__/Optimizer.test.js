@@ -62,8 +62,8 @@ for (let rawFile of readdirSync(rawDir)) {
     )
 
     expect(
-      BasicReporter.report(aggregator.messages).join('\n')
-    ).toBe(messages)
+      BasicReporter.report(aggregator.messages).join('\n').trim()
+    ).toBe(messages.trim())
 
     expect(removeLocation(optimizedAst))
       .toEqual(removeLocation(rawAst))

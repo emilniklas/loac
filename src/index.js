@@ -9,6 +9,7 @@ import ErlangGenerator from './generators/ErlangGenerator'
 import JavaScriptGenerator from './generators/JavaScriptGenerator'
 
 import MessageAggregator from './MessageAggregator'
+import BasicReporter from './reporting/BasicReporter'
 
 import SyntaxError from './errors/SyntaxError'
 import ParserError from './errors/ParserError'
@@ -24,7 +25,9 @@ export {
   OptimizerError,
   AnalysisError,
   ast,
-  tokens
+  tokens,
+  MessageAggregator,
+  BasicReporter
 }
 
 export class Compilation {

@@ -48,11 +48,7 @@ export default class Parser {
 
   _expect (tokenType) {
     if (!this._is(tokenType)) {
-      throw new ParserError(
-        this._filename,
-        this._code,
-        this._tokens,
-        this._cursor,
+      this._parserError(
         `Expected a ${tokenType} but saw a ${this._current.type}`
       )
     }
@@ -78,6 +74,12 @@ export default class Parser {
   _multi (condition, parse) {
     let result = []
     while (condition()) {
+      if (this._is(t.EOF)) {
+        this._parserError(
+          'Unexpected end of input'
+        )
+      }
+
       result.push(parse.call(this))
     }
     return result
@@ -91,6 +93,7 @@ export default class Parser {
 
   _parserError (message) {
     throw new ParserError(
+      this._filename, this._code,
       this._tokens, this._cursor, message
     )
   }

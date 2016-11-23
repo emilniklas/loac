@@ -1,5 +1,5 @@
 import ReferenceResolver from '../../src/analysis/ReferenceResolver'
-import References from '../../src/analysis/References'
+import ReferenceBinding from '../../src/analysis/ReferenceBinding'
 import Lexer from '../../src/Lexer'
 import Parser from '../../src/Parser'
 import * as ast from '../../src/ast'
@@ -12,237 +12,134 @@ describe('ReferenceResolver', () => {
         return p
       }
     `, [
-      new References(
-        declaration('p', [2, 7]), null, 0,
-        [ reference('p', [3, 15]) ]
-      )
+      [[2, 7], [3, 15]]
     ])
   })
 
-  test('two parameters', () => {
-    assertFunctionReferences(`
-      (p, p') {
-        return p
-        return p'
-      }
-    `, [
-      new References(
-        declaration('p', [2, 7]), null, 0,
-        [ reference('p', [3, 15]) ]
-      ),
-      new References(
-        declaration("p'", [2, 10]), null, 0,
-        [ reference("p'", [4, 15]) ]
-      )
-    ])
-  })
-
-  test('two references', () => {
+  test('multiple references', () => {
     assertFunctionReferences(`
       (p) {
         return p
         return p
       }
     `, [
-      new References(
-        declaration('p', [2, 7]), null, 0,
-        [
-          reference('p', [3, 15]),
-          reference('p', [4, 15])
-        ]
-      )
+      [[2, 7], [3, 15]],
+      [[2, 7], [4, 15]]
     ])
   })
 
-  test('let statement', () => {
+  test('multiple declarations', () => {
     assertFunctionReferences(`
-      () {
-        let d = 123
-        return d
+      (p, p') {
+        return p
+        return p'
       }
     `, [
-      new References(
-        declaration('d', [3, 12]), null, 1,
-        [ reference('d', [4, 15]) ]
-      )
+      [[2, 7], [3, 15]],
+      [[2, 10], [4, 15]]
     ])
   })
 
   test('if statement', () => {
     assertFunctionReferences(`
-      (a) {
-        if a {
-          let b = 123
-          return b
+      (cond) {
+        if cond {
+          return cond
         }
+        return cond
       }
     `, [
-      new References(
-        declaration('a', [2, 7]), null, 0,
-        [
-          reference('a', [3, 11])
-        ]
-      ),
-      new References(
-        declaration('b', [4, 14]), null, 2,
-        [ reference('b', [5, 17]) ]
-      )
+      [[2, 7], [3, 11]],
+      [[2, 7], [4, 17]],
+      [[2, 7], [6, 15]]
     ])
   })
 
-  test('same name two scopes', () => {
+  test('inner scoped declaration', () => {
     assertFunctionReferences(`
-      (a) {
-        if a {
-          let b = 123
-          return b
+      (cond) {
+        if cond {
+          let inner = 123
+          return inner
         }
-        if a {
-          let b = 123
-          return b
-        }
+        return cond
       }
     `, [
-      new References(
-        declaration('a', [2, 7]), null, 0,
-        [
-          reference('a', [3, 11]),
-          reference('a', [7, 11])
-        ]
-      ),
-      new References(
-        declaration('b', [4, 14]), null, 2,
-        [ reference('b', [5, 17]) ]
-      ),
-      new References(
-        declaration('b', [8, 14]), null, 2,
-        [ reference('b', [9, 17]) ]
-      )
+      [[2, 7], [3, 11]],
+      [[4, 14], [5, 17]],
+      [[2, 7], [7, 15]]
     ])
   })
 
-  test('nested same name', () => {
+  test('inner scope declaration with same name', () => {
     assertFunctionReferences(`
-      (a, b) {
-        if a {
-          let b = 123
-          return b
+      (var) {
+        if var {
+          let var = 123
+          return var
         }
-        return b
+        return var
       }
     `, [
-      new References(
-        declaration('a', [2, 7]), null, 0,
-        [ reference('a', [3, 11]) ]
-      ),
-      new References(
-        declaration('b', [2, 10]), null, 0,
-        [ reference('b', [7, 15]) ]
-      ),
-      new References(
-        declaration('b', [4, 14]), null, 2,
-        [ reference('b', [5, 17]) ]
-      )
+      [[2, 7], [3, 11]],
+      [[4, 14], [5, 17]],
+      [[2, 7], [7, 15]]
     ])
   })
 
-  test('inner function', () => {
+  test('multiple inner scopes', () => {
     assertFunctionReferences(`
-      (a) {
-        let f () {
-          let b = a
-          return b
+      (var) {
+        if var {
+          let var = 123
+          return var
         }
-        return a
+        if var {
+          let var = 123
+          return var
+        }
+        return var
       }
     `, [
-      new References(
-        declaration('a', [2, 7]), null, 0,
-        [
-          reference('a', [4, 18]),
-          reference('a', [7, 15])
-        ]
-      ),
-      new References(
-        declaration('f', [3, 12]), null, 1, []
-      ),
-      new References(
-        declaration('b', [4, 14]), null, 2,
-        [ reference('b', [5, 17]) ]
-      )
+      [[2, 7], [3, 11]],
+      [[4, 14], [5, 17]],
+      [[2, 7], [7, 11]],
+      [[8, 14], [9, 17]],
+      [[2, 7], [11, 15]]
     ])
   })
 
-  test('undefined reference', () => {
+  test('inner inner scopes', () => {
     assertFunctionReferences(`
-      () {
-        return a
-      }
-    `, [
-      new References(
-        null, null, 1,
-        [ reference('a', [3, 15]) ]
-      )
-    ])
-  })
-
-  test('undefined reference and defined reference with same name', () => {
-    assertFunctionReferences(`
-      (a) {
-        if a {
-          let b = 123
-          return b
+      (var) {
+        if var {
+          let var = 123
+          if var {
+            let var = 123
+            return var
+          }
+          return var
         }
-        return b
+        return var
       }
     `, [
-      new References(
-        declaration('a', [2, 7]), null, 0,
-        [
-          reference('a', [3, 11]),
-        ]
-      ),
-      new References(
-        declaration('b', [4, 14]), null, 2,
-        [
-          reference('b', [5, 17]),
-        ]
-      ),
-      new References(
-        null, null, 1,
-        [ reference('b', [7, 15]) ]
-      )
+      [[2, 7], [3, 11]],
+      [[4, 14], [5, 13]],
+      [[6, 16], [7, 19]],
+      [[4, 14], [9, 17]],
+      [[2, 7], [11, 15]],
     ])
   })
 })
 
-function declaration (content, [line, column]) {
-  return new ast.NamePattern(
-    new ast.SimpleIdentifier({
-      type: tokens.SYMBOL,
-      content: content,
-      location: ['<unknown>', line, column]
-    })
-  )
-}
-
-function reference (content, [line, column]) {
-  return new ast.ValueExpression(
-    new ast.SimpleIdentifier({
-      type: tokens.SYMBOL,
-      content: content,
-      location: ['<unknown>', line, column]
-    })
-  )
-}
-
 function assertFunctionReferences (code, expected) {
-  expect(functionReferences(code)).toEqual(expected)
-}
-
-function functionReferences (code) {
-  return ReferenceResolver.resolve(
+  const bindings = ReferenceResolver.resolve(
     Parser.load('<unknown>', code, Lexer.tokenize(code))
       ._parseFunctionExpression()
-  )
+  ).map((binding) => [
+    binding.declarationLocation.slice(1),
+    binding.referenceLocation.slice(1)
+  ])
+
+  expect(bindings).toEqual(expected)
 }

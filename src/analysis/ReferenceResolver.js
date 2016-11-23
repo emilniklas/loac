@@ -1,20 +1,26 @@
 import * as ast from '../ast'
-import References from './References'
+import ReferenceBinding from './ReferenceBinding'
 
 export default class ReferenceResolver {
-  constructor (ast, references, level = 0) {
-    this._ast = ast
-    this._references = references
+  constructor ({
+    node,
+    bindings,
+    level = 0,
+    scopes = [[]],
+  }) {
+    this._node = node
+    this._bindings = bindings
     this._level = level
+    this._scopes = scopes
   }
 
-  static resolve (ast, references = []) {
-    return new ReferenceResolver(ast, references)
-      ._resolve()._references
+  static resolve (node, bindings = []) {
+    return new ReferenceResolver({ node, bindings })
+      ._resolve()._bindings
   }
 
   _resolve () {
-    switch (this._ast.constructor) {
+    switch (this._node.constructor) {
       case ast.Program:
         return this._resolveProgram()
       case ast.FunctionExpression:
@@ -28,47 +34,93 @@ export default class ReferenceResolver {
       case ast.IfStatement:
         return this._resolveIfStatement()
       case ast.ValueExpression:
-        return this._reference(this._ast)
+        return this._reference(this._node)
       case ast.Assignment:
         return this._resolveAssignment()
       case ast.FunctionDeclaration:
         return this._resolveFunctionDeclaration()
     }
-    throw new Error(`TODO: Accept ${this._ast.constructor.name} nodes`)
+    throw new Error(`TODO: Accept ${this._node.constructor.name} nodes`)
   }
 
-  _copy ({ ast, references, level }) {
+  _copy (changes) {
     return new ReferenceResolver(
-      ast || this._ast,
-      references || this._references,
-      level || this._level
+      Object.assign({}, {
+        ast: this._node,
+        level: this._level,
+        scopes: this._scopes,
+        bindings: this._bindings
+      }, changes)
     )
   }
 
-  _move (ast) {
-    return this._copy({ ast })
+  _move (node) {
+    return this._copy({ node })
   }
 
   _levelUp () {
     return this._copy({
-      level: this._level + 1
+      level: this._level + 1,
+      scopes: [
+        ...this._scopes,
+        [] // inner scope
+      ]
     })
   }
 
   _levelDown () {
     return this._copy({
-      level: this._level - 1
+      level: this._level - 1,
+      scopes: this._scopes.slice(0, this._level)
     })
   }
 
-  _load (references) {
+  _declaration (declaration, type = null) {
     return this._copy({
-      references: this._references.concat(references)
+      scopes: [
+        ...this._scopes.slice(0, this._level),
+        [
+          ...this._scopes[this._level],
+          new ReferenceBinding(declaration, type)
+        ]
+      ]
+    })
+  }
+
+  _reference (reference) {
+    const partialBinding = this._scopes
+      .reduceRight((all, scope) => all.concat(scope)) // Flatten
+      .reduce((found, partial) => {
+        if (found != null) {
+          return found
+        }
+
+        // console.log(partial, reference)
+
+        if (partial.declarationMatchesReference(reference)) {
+          return partial
+        }
+      }, null)
+
+    if (partialBinding == null) {
+      return this._copy({
+        bindings: [
+          ...this._bindings,
+          new ReferenceBinding(null, null, reference)
+        ]
+      })
+    }
+
+    return this._copy({
+      bindings: [
+        ...this._bindings,
+        partialBinding.bind(reference)
+      ]
     })
   }
 
   _resolveProgram () {
-    return this._ast.topLevelDeclarations.reduce(
+    return this._node.topLevelDeclarations.reduce(
       (resolver, declaration) => resolver
         ._move(declaration)
         ._resolveTopLevelDeclaration(),
@@ -78,21 +130,27 @@ export default class ReferenceResolver {
 
   _resolveTopLevelDeclaration () {
     return this
-      ._move(this._ast.declaration)
+      ._move(this._node.declaration)
       ._resolve()
   }
 
   _resolveFunctionExpression () {
-    return this._move(this._ast.parameterList)
+    const parser = this._move(this._node.parameterList)
       ._resolveParameterList()
+
+    if (this._node.body == null) {
+      return parser
+    }
+
+    return parser
       ._levelUp()
-      ._move(this._ast.body)
+      ._move(this._node.body)
       ._resolveFunctionBody()
       ._levelDown()
   }
 
   _resolveParameterList () {
-    return this._ast.patterns.reduce(
+    return this._node.patterns.reduce(
       (resolver, pattern) =>
         resolver._move(pattern)._resolveTypedPattern(),
       this
@@ -101,33 +159,13 @@ export default class ReferenceResolver {
 
   _resolveTypedPattern () {
     return this._declaration(
-      this._ast.pattern,
-      this._ast.typeArgument
-    )
-  }
-
-  _declaration (pattern, typeArgument) {
-    if (this._alreadyLoaded(pattern)) {
-      return this
-    }
-
-    return this._load([
-      new References(pattern, typeArgument, this._level)
-    ])
-  }
-
-  _alreadyLoaded (pattern) {
-    return this._references.reduce(
-      (isLoaded, references) => {
-        return isLoaded ||
-          references.declaration === pattern
-      },
-      false
+      this._node.pattern,
+      this._node.typeArgument
     )
   }
 
   _resolveFunctionBody () {
-    return this._ast.statements
+    return this._node.statements
       .reduce(
         (resolver, statement) => {
           return resolver._move(statement)._resolve()
@@ -137,120 +175,53 @@ export default class ReferenceResolver {
   }
 
   _resolveExpression () {
-    if (this._ast instanceof ast.ValueExpression) {
-      return this._reference(this._ast)
+    if (this._node instanceof ast.ValueExpression) {
+      return this._reference(this._node)
     }
     return this
-  }
-
-  _reference (value) {
-    if (this._alreadyAdded(value)) {
-      return this
-    }
-    const [foundDeclaration, references] = this._references.reduceRight(([done, references], r) => {
-      const hasntFoundMatch = !done
-      const hasSameSymbol = r.declaration == null
-        ? r.references[0].identifier.symbol.content ===
-            value.identifier.symbol.content
-        : r.declaration.identifier.symbol.content ===
-            value.identifier.symbol.content
-      const isNotOutOfScope = r.level <= this._level
-
-      if (
-        hasntFoundMatch &&
-        hasSameSymbol &&
-        isNotOutOfScope
-      ) {
-        return [true,
-          [r.addReference(value)].concat(references)
-        ]
-      }
-      return [done, [r].concat(references)]
-    }, [false, []])
-
-    if (!foundDeclaration) {
-      return this._load([
-        new References(null, null, this._level)
-          .addReference(value)
-      ])
-    }
-
-    return this._copy({
-      references
-    })
-  }
-
-  _alreadyAdded (value) {
-    return this._references.reduce(
-      (isAdded, references) => {
-        return isAdded ||
-          references.references.reduce(
-            (isAdded, reference) => isAdded ||
-              reference === value,
-            false
-          )
-      },
-      false
-    )
   }
 
   _resolveReturnStatement () {
     return this
-      ._move(this._ast.expression)
+      ._move(this._node.expression)
       ._resolveExpression()
   }
 
   _resolveLetStatement () {
     return this
-      ._move(this._ast.declaration)
+      ._move(this._node.declaration)
       ._resolve()
   }
 
   _resolveIfStatement () {
     return this
-      ._move(this._ast.expression)
-      ._levelUp()
+      ._move(this._node.expression)
       ._resolveExpression()
-      ._move(this._ast.body)
+      ._levelUp()
+      ._move(this._node.body)
       ._resolveFunctionBody()
       ._levelDown()
-    // const innerReferences = ReferenceResolver.resolve(
-    //   this._ast.body,
-    //   this._references
-    // )
-
-    // return this._copy({
-    //   references: innerReferences.reduce(
-    //     (all, ref) => {
-    //       if (this._alreadyLoaded(ref.declaration)) {
-    //         return all
-    //       }
-    //       return all.concat(ref)
-    //     },
-    //     this._references
-    //   )
-    // })
   }
 
   _resolveAssignment () {
     return this
-      ._move(this._ast.pattern)
+      ._move(this._node.pattern)
       ._resolveTypedPattern()
-      ._move(this._ast.expression)
+      ._move(this._node.expression)
       ._resolveExpression()
   }
 
   _resolveFunctionDeclaration () {
-    const type = this._ast.returnType == null
+    const type = this._node.returnType == null
       ? null
-      : this._ast.returnType.typeArgument
+      : this._node.returnType.typeArgument
 
     return this
       ._declaration(
-        new ast.NamePattern(this._ast.identifier),
+        new ast.NamePattern(this._node.identifier),
         type
       )
-      ._move(this._ast.functionExpression)
+      ._move(this._node.functionExpression)
       ._resolveFunctionExpression()
   }
 }

@@ -31,6 +31,13 @@ export default class ExpressionParser {
         break
       }
     }
+
+    if (segments.length === 0) {
+      this._parser._parserError(
+        'Expected an expression'
+      )
+    }
+
     return this._parseOperatorExpressionTree(segments)
   }
 
