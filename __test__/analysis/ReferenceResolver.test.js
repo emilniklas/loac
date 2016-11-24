@@ -127,15 +127,42 @@ describe('ReferenceResolver', () => {
       [[4, 14], [5, 13]],
       [[6, 16], [7, 19]],
       [[4, 14], [9, 17]],
-      [[2, 7], [11, 15]],
+      [[2, 7], [11, 15]]
+    ])
+  })
+
+  test('type reference', () => {
+    assertProgramReferences(`
+      private interface T
+      public const t: T
+    `, [
+      [[2, 24], [3, 22]]
+    ])
+  })
+
+  test('type subtype references', () => {
+    assertProgramReferences(`
+      private interface T
+      private interface U: T
+      public const t: U
+    `, [
+      [[2, 24], [3, 27]],
+      [[3, 24], [4, 22]]
     ])
   })
 })
 
 function assertFunctionReferences (code, expected) {
+  assertReferences(code, (p) => p._parseFunctionExpression(), expected)
+}
+
+function assertProgramReferences (code, expected) {
+  assertReferences(code, (p) => p._parseProgram(), expected)
+}
+
+function assertReferences (code, parse, expected) {
   const bindings = ReferenceResolver.resolve(
-    Parser.load('<unknown>', code, Lexer.tokenize(code))
-      ._parseFunctionExpression()
+    parse(Parser.load('<unknown>', code, Lexer.tokenize(code)))
   ).map((binding) => [
     binding.declarationLocation.slice(1),
     binding.referenceLocation.slice(1)

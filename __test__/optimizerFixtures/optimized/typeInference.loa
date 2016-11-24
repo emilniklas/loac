@@ -11,7 +11,7 @@ public f () -> Int {
 public f () -> Int {
   return 123
 }
-public f (value) -> Int | Float {
+public f (value: Any) -> Int | Float {
   if value {
     return 123
   }
@@ -23,7 +23,7 @@ public f (value) -> Int {
   }
   return 123
 }
-/*public f () -> Int {
+public f () -> Int {
   let i: Int = 123
   return i
-}*/
+}

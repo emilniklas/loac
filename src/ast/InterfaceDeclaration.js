@@ -2,19 +2,22 @@
  * InterfaceDeclaration ::=
  *   INTERFACE_KEYWORD
  *   SimpleIdentifier
- *   Interfaces?
+ *   Generics?
+ *   (COLON TypeArgument)?
  *   ObjectBody?
  */
 export default class InterfaceDeclaration {
   constructor (
     keyword,
     identifier,
-    interfaces = null,
+    generics = null,
+    typeArgument = null,
     body = null
   ) {
     this.keyword = keyword
     this.identifier = identifier
-    this.interfaces = interfaces
+    this.generics = generics
+    this.typeArgument = typeArgument
     this.body = body
   }
 
@@ -23,6 +26,6 @@ export default class InterfaceDeclaration {
   }
 
   get end () {
-    return (this.body || this.interfaces || this.identifier).end
+    return (this.body || this.typeArgument || this.generics || this.identifier).end
   }
 }

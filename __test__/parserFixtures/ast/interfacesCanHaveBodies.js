@@ -15,6 +15,7 @@ export default new ast.Program(null, [], [
       tok(t.INTERFACE_KEYWORD, 'interface', [1, 7]),
       simpleIdentifier('Y', [1, 17]),
       null,
+      null,
       new ast.ObjectBody(
         tok(t.BEGIN_CURLY_BRACE, '{', [1, 19]),
         [

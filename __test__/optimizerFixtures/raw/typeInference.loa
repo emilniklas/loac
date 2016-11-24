@@ -15,7 +15,7 @@ public f (value) {
   }
   return 123
 }
-/*public f () {
+public f () {
   let i = 123
   return i
-}*/
+}

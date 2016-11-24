@@ -2,50 +2,72 @@ import * as ast from '../ast'
 import * as ir from '../ir'
 import { deepEquals } from '../utils'
 import Optimization from './Optimization'
+import ReferenceResolver from '../analysis/ReferenceResolver'
 
 export default class TypeInferenceOptimization extends Optimization {
-  FunctionExpression (functionExpression, symbols) {
-    if (functionExpression.returnType != null) {
-      return functionExpression
+  get bindings () {
+    return {
+      Program: (program) => {
+        this._referenceBindings = ReferenceResolver.resolve(program)
+
+        return program
+      }
     }
-
-    const returnType = functionExpression.body == null
-      ? new ast.TypeReference(
-          new ast.SimpleIdentifier(ir.symbol('Any'))
-        )
-      : this._inferFromFunctionBody(
-          functionExpression.body,
-          symbols
-        )
-
-    return new ast.FunctionExpression(
-      functionExpression.parameterList,
-      new ast.ReturnType(
-        ir.ARROW,
-        returnType
-      ),
-      functionExpression.body
-    )
   }
 
-  _inferFromFunctionBody (body, symbols) {
-    if (body instanceof ast.BlockFunctionBody) {
-      return this._inferFromBlockFunctionBody(body, symbols)
+  get values () {
+    return {
+      TypedPattern: (typedPattern) => {
+        for (const binding of this._referenceBindings) {
+          if (this._sameNode(binding.declaration, typedPattern.pattern)) {
+            return new ast.TypedPattern(
+              typedPattern.pattern,
+              binding.type
+            )
+          }
+        }
+        return typedPattern
+      }
     }
-    this.error(body, 'Expected a function body')
   }
 
-  _inferFromBlockFunctionBody (body, symbols) {
-    const types = this._extractStatements(body)
-      .reduce((statements, statement) =>
-        statements.concat(this._extractStatements(statement)),
-        []
+  get functions () {
+    return {
+      FunctionExpression: (functionExpression) => {
+        if (functionExpression.returnType != null) {
+          return functionExpression
+        }
+        return new ast.FunctionExpression(
+          functionExpression.parameterList,
+          new ast.ReturnType(
+            ir.ARROW,
+            this._inferFromFunctionBody(functionExpression.body),
+          ),
+          functionExpression.body
+        )
+      }
+    }
+  }
+
+  _sameNode (a, b) {
+    const sameLocation =
+      a.begin.location[0] === b.begin.location[0] &&
+      a.begin.location[1] === b.begin.location[1] &&
+      a.begin.location[2] === b.begin.location[2]
+
+    return a.constructor === b.constructor &&
+      sameLocation
+  }
+
+  _inferFromFunctionBody (body) {
+    const returns = this._flattenStatements(
+        body.statements
       )
-      .filter((statement) =>
-        statement instanceof ast.ReturnStatement
+      .filter((st) =>
+        st instanceof ast.ReturnStatement
       )
-      .map((statement) =>
-        this._inferFromExpression(statement.expression, symbols)
+      .map((ret) =>
+        this._inferFromExpression(ret.expression)
       )
       .reduce((types, type) =>
         this._containsType(types, type)
@@ -54,38 +76,21 @@ export default class TypeInferenceOptimization extends Optimization {
         []
       )
 
-    if (types.length === 0) {
-      return new ast.TypeReference(
-        new ast.SimpleIdentifier(ir.symbol('Unit'))
-      )
+    if (returns.length === 0) {
+      return ir.typeReference('Unit')
     }
 
-    if (types.length === 1) {
-      return types[0]
+    if (returns.length === 1) {
+      return returns[0]
     }
+
     return new ast.UnionTypeArgument(
-      types
+      returns
     )
   }
 
-  _extractStatements (node) {
-    if (node instanceof ast.ExpressionFunctionBody) {
-      return node.expression
-    }
-
-    if (node instanceof ast.BlockFunctionBody) {
-      return node.statements
-    }
-
-    if (node instanceof ast.IfStatement) {
-      return this._extractStatements(node.body)
-    }
-
-    return node
-  }
-
   _containsType (types, type) {
-    for (let existing of types) {
+    for (const existing of types) {
       if (deepEquals(existing, type)) {
         return true
       }
@@ -93,47 +98,40 @@ export default class TypeInferenceOptimization extends Optimization {
     return false
   }
 
-  _inferFromExpression (expression, symbols) {
-    if (expression instanceof ast.IntegerLiteralExpression) {
-      return new ast.TypeReference(
-        new ast.SimpleIdentifier(ir.symbol('Int'))
-      )
-    }
-
-    if (expression instanceof ast.FloatLiteralExpression) {
-      return new ast.TypeReference(
-        new ast.SimpleIdentifier(ir.symbol('Float'))
-      )
-    }
-
-    if (expression instanceof ast.ValueExpression) {
-      const symbol = expression.identifier.symbol.content
-      const registry = symbols.get(symbol)
-      if (registry != null) {
-        return registry.type
-      }
-    }
-
-    if (expression instanceof ast.TupleLiteralExpression) {
-      if (expression.expressions.length === 0) {
-        return new ast.TypeReference(
-          new ast.SimpleIdentifier(ir.symbol('Unit'))
-        )
-      }
-    }
-
-    this.error(expression, 'Could not infer type')
-
-    return new ast.TypeReference(
-      new ast.SimpleIdentifier(ir.symbol('Any'))
+  _flattenStatements (statements) {
+    return statements.reduce(
+      (statements, statement) => {
+        switch (statement.constructor) {
+          case ast.IfStatement:
+            return statements.concat(statement.body.statements)
+          default:
+            return statements.concat(statement)
+        }
+      },
+      []
     )
   }
 
-  LetStatement (statement, symbols) {
-    // const newSymbols = symbols
-    //   .set(statement.pattern.identifier.symbol.content, {
-    //     type: statement.pattern.typeArgument,
-    //     value: statement.expression
-    //   })
+  _inferFromExpression (expression) {
+    switch (expression && expression.constructor) {
+      case ast.IntegerLiteralExpression:
+        return ir.typeReference('Int')
+      case ast.FloatLiteralExpression:
+        return ir.typeReference('Float')
+      case ast.TupleLiteralExpression:
+        const length = expression.expressions.length
+        if (length === 0) {
+          return ir.typeReference('Unit')
+        }
+        return ir.typeReference(`Tuple${length}`)
+      case ast.ValueExpression:
+        for (const binding of this._referenceBindings) {
+          if (this._sameNode(binding.reference, expression)) {
+            return binding.type || ir.typeReference('Any')
+          }
+        }
+      default:
+        return ir.typeReference('Any')
+    }
   }
 }

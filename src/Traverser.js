@@ -1,20 +1,17 @@
-import SymbolTable from './analysis/SymbolTable'
-
 export default class Traverser {
-  constructor (ast, transform, symbols) {
+  constructor (ast, transform) {
     this.ast = ast
     this.transform = transform
-    this.symbols = symbols
   }
 
-  static traverse (ast, transform, symbols) {
+  static traverse (ast, transform) {
     return new Traverser(
-      ast, transform, symbols || SymbolTable.make()
+      ast, transform
     )._traverseRoot()
   }
 
   _traverseRoot () {
-    return this._traverse(this.ast, this.symbols)
+    return this._traverse(this.ast)
   }
 
   _traverseChildren () {
@@ -41,38 +38,24 @@ export default class Traverser {
         continue
       }
 
-      copy[field] = this._traverse(current, this.symbols)
+      copy[field] = this._traverse(current)
     }
 
     return copy
   }
 
-  _traverse (node, symbols) {
-    const [ast, newSymbols] = this._transform(node, symbols)
+  _traverse (node) {
+    const ast = this.transform(node)
 
-    return this._nest(ast, newSymbols)
+    return this._nest(ast)
   }
 
-  _nest (ast, symbols) {
-    return new Traverser(ast, this.transform, symbols)
+  _nest (ast) {
+    return new Traverser(ast, this.transform)
       ._traverseChildren()
   }
 
-  _transform (node, symbols) {
-    const result = this.transform(node, symbols)
-    return Array.isArray(result)
-      ? result
-      : [result, symbols]
-  }
-
   _traverseMultiple (nodes) {
-    const [newNodes] = nodes.reduce(
-      ([nodes, symbols], node) => {
-        const [newNode, newSymbols] = this._transform(node, symbols)
-        return [nodes.concat(this._nest(newNode, newSymbols)), newSymbols]
-      },
-      [[], this.symbols]
-    )
-    return newNodes
+    return nodes.map((node) => this._nest(this.transform(node)))
   }
 }

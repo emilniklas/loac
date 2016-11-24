@@ -52,11 +52,18 @@ export function returnStatement (expression) {
   )
 }
 
-export function typeReference (name) {
+export function typeReference (name, args = []) {
   return new ast.TypeReference(
     new ast.SimpleIdentifier(
       symbol(name)
-    )
+    ),
+    args.length === 0
+      ? null
+      : new ast.TypeArguments(
+        BEGIN_ANGLE_BRACKET,
+        args,
+        END_ANGLE_BRACKET
+      )
   )
 }
 

@@ -1,2 +1,1 @@
 __test__/optimizerFixtures/raw/undefinedValue.loa:2:9: error: 'a' is not defined
-__test__/optimizerFixtures/raw/undefinedValue.loa:2:9: error: Could not infer type

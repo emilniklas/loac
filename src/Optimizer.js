@@ -20,6 +20,10 @@ export default class Optimizer {
   static optimize (filename, code, ast, messages = new MessageAggregator()) {
     const coreLibImportInjectionOptimization =
       new CoreLibImportInjectionOptimization(filename, code, messages)
+
+    const typeInferenceOptimization =
+      new TypeInferenceOptimization(filename, code, messages)
+
     return new Optimizer(ast, messages)
       .apply(new ExpressionFunctionBodyOptimization(filename, code, messages))
       .apply(new AlwaysReturnOptimization(filename, code, messages))
@@ -28,7 +32,9 @@ export default class Optimizer {
       .apply(new TupleTypeArgumentOptimization(filename, code, messages))
       .apply(new FutureTypeArgumentOptimization(filename, code, messages))
       .apply(new ResolveReferencesOptimization(filename, code, messages))
-      .apply(new TypeInferenceOptimization(filename, code, messages))
+      .apply(typeInferenceOptimization.bindings)
+      .apply(typeInferenceOptimization.values)
+      .apply(typeInferenceOptimization.functions)
       .apply(coreLibImportInjectionOptimization.read)
       .apply(coreLibImportInjectionOptimization.write)
       .ast
@@ -38,10 +44,10 @@ export default class Optimizer {
     const methods = optimization.constructor === Object
       ? Reflect.ownKeys(optimization)
       : Reflect.ownKeys(Reflect.getPrototypeOf(optimization))
-    const ast = Traverser.traverse(this.ast, (node, symbols) => {
+    const ast = Traverser.traverse(this.ast, (node) => {
       for (let method of methods) {
         if (node.constructor.name === method) {
-          return optimization[method](node, symbols)
+          return optimization[method](node)
         }
       }
       return node

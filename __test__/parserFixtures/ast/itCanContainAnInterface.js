@@ -15,6 +15,7 @@ export default new ast.Program(null, [], [
       tok(t.INTERFACE_KEYWORD, 'interface', [1, 8]),
       simpleIdentifier('X', [1, 18]),
       null,
+      null,
       null
     )
   )

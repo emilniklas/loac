@@ -502,15 +502,18 @@ export default class Parser {
    * InterfaceDeclaration ::=
    *   INTERFACE_KEYWORD
    *   SimpleIdentifier
-   *   Interfaces?
+   *   Generics?
+   *   (COLON TypeArgument)?
    *   ObjectBody?
    */
   _parseInterfaceDeclaration () {
-    this._expect(t.INTERFACE_KEYWORD)
-    const keyword = this._move()
+    const keyword = this._consume(t.INTERFACE_KEYWORD)
     const identifier = this._parseSimpleIdentifier()
-    const interfaces = this._is(t.COLON)
-      ? this._parseInterfaces()
+    const generics = this._is(t.BEGIN_ANGLE_BRACKET)
+      ? this._parseGenerics()
+      : null
+    const typeArgument = this._is(t.COLON)
+      ? this._move() && this._parseTypeArgument()
       : null
     const body = this._is(t.BEGIN_CURLY_BRACE)
       ? this._parseObjectBody()
@@ -519,7 +522,8 @@ export default class Parser {
     return new ast.InterfaceDeclaration(
       keyword,
       identifier,
-      interfaces,
+      generics,
+      typeArgument,
       body
     )
   }

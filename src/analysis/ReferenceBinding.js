@@ -40,7 +40,22 @@ export default class ReferenceBinding {
     switch (node.constructor) {
       case ast.NamePattern:
       case ast.ValueExpression:
-        return node.identifier.symbol
+      case ast.InterfaceDeclaration:
+      case ast.TypeReference:
+        return this._resolveSymbol(node.identifier)
+
+      case ast.ConstantDeclaration:
+        return this._resolveSymbol(node.assignment)
+
+      case ast.Assignment:
+      case ast.TypedPattern:
+        return this._resolveSymbol(node.pattern)
+
+      case ast.QualifiedIdentifier:
+        return this._resolveSymbol(node.simpleIdentifier)
+
+      case ast.SimpleIdentifier:
+        return node.symbol
 
       default:
         throw new Error(
