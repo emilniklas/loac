@@ -136,7 +136,8 @@ describe('ReferenceResolver', () => {
       private interface T
       public const t: T
     `, [
-      [[2, 24], [3, 22]]
+      [[2, 24], [3, 22]],
+      [[3, 19], [NaN, NaN]]
     ])
   })
 
@@ -147,7 +148,48 @@ describe('ReferenceResolver', () => {
       public const t: U
     `, [
       [[2, 24], [3, 27]],
-      [[3, 24], [4, 22]]
+      [[3, 24], [4, 22]],
+      [[4, 19], [NaN, NaN]]
+    ])
+  })
+
+  test('unordered type reference', () => {
+    assertProgramReferences(`
+      private interface U: T
+      private interface T
+    `, [
+      [[3, 24], [2, 27]],
+      [[2, 24], [NaN, NaN]]
+    ])
+  })
+
+  test('unordered const type reference', () => {
+    assertProgramReferences(`
+      private const c: T
+      private interface T
+    `, [
+      [[3, 24], [2, 23]],
+      [[2, 20], [NaN, NaN]]
+    ])
+  })
+
+  test('use imports', () => {
+    assertProgramReferences(`
+      use This.Thing.T
+      private interface U: T
+    `, [
+      [[2, 10], [3, 27]],
+      [[3, 24], [NaN, NaN]]
+    ])
+  })
+
+  test('type arguments', () => {
+    assertProgramReferences(`
+      public f () -> T
+      private interface T
+    `, [
+      [[3, 24], [2, 21]],
+      [[2, 13], [NaN, NaN]]
     ])
   })
 })

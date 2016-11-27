@@ -23,17 +23,42 @@ export default class ReferenceBinding {
     return this._resolveLocation(this.reference)
   }
 
+  get name () {
+    return this._resolveName(
+      this.declaration ||
+      this.reference
+    )
+  }
+
   declarationMatchesReference (reference) {
     return this._resolveName(this.declaration) ===
       this._resolveName(reference)
   }
 
   _resolveLocation (node) {
-    return this._resolveSymbol(node).location
+    if (node == null) {
+      return ['<unknown>', NaN, NaN]
+    }
+    const token = this._resolveSymbol(node)
+
+    if (token instanceof ast.QualifiedIdentifier) {
+      return token.begin.location
+    }
+
+    return token.location
   }
 
   _resolveName (node) {
-    return this._resolveSymbol(node).content
+    if (node == null) {
+      return 'none'
+    }
+    const token = this._resolveSymbol(node)
+
+    if (token instanceof ast.QualifiedIdentifier) {
+      return token.simpleIdentifier.symbol.content
+    }
+
+    return token.content
   }
 
   _resolveSymbol (node) {
@@ -52,7 +77,7 @@ export default class ReferenceBinding {
         return this._resolveSymbol(node.pattern)
 
       case ast.QualifiedIdentifier:
-        return this._resolveSymbol(node.simpleIdentifier)
+        return node
 
       case ast.SimpleIdentifier:
         return node.symbol

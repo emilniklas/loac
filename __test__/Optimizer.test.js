@@ -61,12 +61,12 @@ for (let rawFile of readdirSync(rawDir)) {
       Lexer.tokenize(optimized)
     )
 
+    expect(removeLocation(optimizedAst))
+      .toEqual(removeLocation(rawAst))
+
     expect(
       BasicReporter.report(aggregator.messages).join('\n').trim()
     ).toBe(messages.trim())
-
-    expect(removeLocation(optimizedAst))
-      .toEqual(removeLocation(rawAst))
   })
 }
 
@@ -75,11 +75,13 @@ function removeLocation (ast) {
     return ast
   }
   if (ast.constructor === Object && typeof ast.type === 'string') {
-    delete ast.location
-    return ast
+    const copy = Object.assign({}, ast)
+    delete copy.location
+    return copy
   }
+  let copy = {}
   for (let prop in ast) {
-    ast[prop] = removeLocation(ast[prop])
+    copy[prop] = removeLocation(ast[prop])
   }
-  return ast
+  return copy
 }

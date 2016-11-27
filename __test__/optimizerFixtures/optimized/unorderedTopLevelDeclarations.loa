@@ -1,0 +1,8 @@
+// Sanity check
+public interface A
+public interface B: A
+public interface C: DoesntExist
+
+// Reversed order
+public interface D: E
+public interface E

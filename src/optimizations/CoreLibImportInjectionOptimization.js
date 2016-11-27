@@ -9,7 +9,7 @@ export default class CoreLibImportInjectionOptimization {
   get read () {
     return {
       TypeReference: (reference) => {
-        const symbol = reference.identifier.symbol.content
+        const symbol = reference.begin.content
         switch (symbol) {
           case 'Unit':
           case 'Int':

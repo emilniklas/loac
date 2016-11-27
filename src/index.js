@@ -1,6 +1,7 @@
 import Lexer from './Lexer'
 import Parser from './Parser'
 import Optimizer from './Optimizer'
+import ReferenceResolver from './analysis/ReferenceResolver'
 
 import * as ast from './ast'
 import * as tokens from './tokens'
@@ -53,6 +54,10 @@ export class Compilation {
       ),
       messages
     )
+  }
+
+  get referenceBindings () {
+    return ReferenceResolver.resolve(this.ast)
   }
 
   toErlang () {

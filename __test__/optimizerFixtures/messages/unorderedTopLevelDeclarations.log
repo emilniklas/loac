@@ -1,0 +1,1 @@
+__test__/optimizerFixtures/raw/unorderedTopLevelDeclarations.loa:4:20: error: 'DoesntExist' is not defined

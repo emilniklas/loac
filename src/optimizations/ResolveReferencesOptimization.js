@@ -8,7 +8,11 @@ export default class ResolveReferencesOptimization extends Optimization {
     for (const binding of bindings) {
       if (binding.declaration == null) {
         this.error(
-          binding.reference, `'${binding.reference.identifier.symbol.content}' is not defined`
+          binding.reference, `'${binding.name}' is not defined`
+        )
+      } else if (binding.reference == null) {
+        this.warning(
+          binding.declaration, `'${binding.name}' is never used`
         )
       }
     }

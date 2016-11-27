@@ -827,7 +827,15 @@ export default class Parser {
   _parseIdentifier () {
     const first = this._parseSimpleIdentifier()
     const rest = this._multi(
-      () => this._is(t.PERIOD),
+      () => {
+        if (!this._is(t.PERIOD)) {
+          return false
+        }
+
+        this._move() // .
+
+        return true
+      },
       this._parseSimpleIdentifier
     )
 

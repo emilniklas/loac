@@ -1,5 +1,7 @@
 import OptimizerError from '../errors/OptimizerError'
 
+const { ERROR, WARNING, HINT } = OptimizerError
+
 export default class Optimization {
   constructor (filename, code, messages) {
     this.filename = filename
@@ -20,14 +22,14 @@ export default class Optimization {
   }
 
   error (astNode, message) {
-    this._message(OptimizerError.ERROR, astNode, message)
+    this._message(ERROR, astNode, message)
   }
 
   warning (astNode, message) {
-    this._message(OptimizerError.WARNING, astNode, message)
+    this._message(WARNING, astNode, message)
   }
 
   hint (astNode, message) {
-    this._message(OptimizerError.HINT, astNode, message)
+    this._message(HINT, astNode, message)
   }
 }
