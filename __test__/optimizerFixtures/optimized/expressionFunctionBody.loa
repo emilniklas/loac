@@ -1,5 +1,3 @@
-use Loa.Core.Int
-
-public f () -> Int {
+public f () {
   return 123
 }

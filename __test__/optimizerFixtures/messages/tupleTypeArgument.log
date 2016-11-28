@@ -1,0 +1,15 @@
+__test__/optimizerFixtures/raw/tupleTypeArgument.loa:2:16: error: 'T' is not defined
+__test__/optimizerFixtures/raw/tupleTypeArgument.loa:3:16: error: 'T' is not defined
+__test__/optimizerFixtures/raw/tupleTypeArgument.loa:3:19: error: 'U' is not defined
+__test__/optimizerFixtures/raw/tupleTypeArgument.loa:4:16: error: 'T' is not defined
+__test__/optimizerFixtures/raw/tupleTypeArgument.loa:4:19: error: 'U' is not defined
+__test__/optimizerFixtures/raw/tupleTypeArgument.loa:4:22: error: 'V' is not defined
+__test__/optimizerFixtures/raw/tupleTypeArgument.loa:5:16: error: 'T' is not defined
+__test__/optimizerFixtures/raw/tupleTypeArgument.loa:5:19: error: 'U' is not defined
+__test__/optimizerFixtures/raw/tupleTypeArgument.loa:5:22: error: 'V' is not defined
+__test__/optimizerFixtures/raw/tupleTypeArgument.loa:5:25: error: 'X' is not defined
+__test__/optimizerFixtures/raw/tupleTypeArgument.loa:6:16: error: 'T' is not defined
+__test__/optimizerFixtures/raw/tupleTypeArgument.loa:6:19: error: 'U' is not defined
+__test__/optimizerFixtures/raw/tupleTypeArgument.loa:6:22: error: 'V' is not defined
+__test__/optimizerFixtures/raw/tupleTypeArgument.loa:6:25: error: 'X' is not defined
+__test__/optimizerFixtures/raw/tupleTypeArgument.loa:6:28: error: 'Y' is not defined

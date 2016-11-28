@@ -1,0 +1,5 @@
+__test__/optimizerFixtures/raw/integrationTypeSugar.loa:1:19: error: 'T1' is not defined
+__test__/optimizerFixtures/raw/integrationTypeSugar.loa:1:23: error: 'T2' is not defined
+__test__/optimizerFixtures/raw/integrationTypeSugar.loa:1:29: error: 'T3' is not defined
+__test__/optimizerFixtures/raw/integrationTypeSugar.loa:1:35: error: 'T4' is not defined
+__test__/optimizerFixtures/raw/integrationTypeSugar.loa:1:38: error: 'T5' is not defined

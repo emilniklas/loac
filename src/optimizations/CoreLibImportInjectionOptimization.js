@@ -11,6 +11,7 @@ export default class CoreLibImportInjectionOptimization {
       TypeReference: (reference) => {
         const symbol = reference.begin.content
         switch (symbol) {
+          case 'Any':
           case 'Unit':
           case 'Int':
           case 'Bool':

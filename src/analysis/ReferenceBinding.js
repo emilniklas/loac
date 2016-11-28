@@ -1,17 +1,37 @@
 import * as ast from '../ast'
 
 export default class ReferenceBinding {
-  constructor (declaration, type = null, reference = null) {
+  constructor (declaration, reference = null, visibility = null, type = null) {
     this.declaration = declaration
-    this.type = type
     this.reference = reference
+    this.visibility = visibility
+    this.type = type
   }
 
   bind (reference) {
     return new ReferenceBinding(
       this.declaration,
-      this.type,
-      reference
+      reference,
+      this.visibility,
+      this.type
+    )
+  }
+
+  declareType (type) {
+    return new ReferenceBinding(
+      this.declaration,
+      this.reference,
+      this.visibility,
+      type
+    )
+  }
+
+  declareVisibility (visibility) {
+    return new ReferenceBinding(
+      this.declaration,
+      this.reference,
+      visibility,
+      this.type
     )
   }
 
@@ -30,9 +50,34 @@ export default class ReferenceBinding {
     )
   }
 
+  get hasLocations () {
+    if (this.isPartial) {
+      return false
+    }
+    return !(
+      isNaN(
+        this._resolveLocation(this.reference)[1] +
+        this._resolveLocation(this.declaration)[1]
+      )
+    )
+  }
+
+  get isPartial () {
+    return this.declaration == null ||
+      this.reference == null
+  }
+
   declarationMatchesReference (reference) {
     return this._resolveName(this.declaration) ===
       this._resolveName(reference)
+  }
+
+  hasDeclaration (declaration) {
+    if (declaration == null || this.declaration == null) {
+      return false
+    }
+    return this._resolveSymbol(declaration) ===
+      this._resolveSymbol(this.declaration)
   }
 
   _resolveLocation (node) {
@@ -62,12 +107,19 @@ export default class ReferenceBinding {
   }
 
   _resolveSymbol (node) {
+    if (node == null) {
+      return { type: null, content: '', location: [null, NaN, NaN] }
+    }
     switch (node.constructor) {
       case ast.NamePattern:
       case ast.ValueExpression:
       case ast.InterfaceDeclaration:
+      case ast.FunctionDeclaration:
       case ast.TypeReference:
         return this._resolveSymbol(node.identifier)
+
+      case ast.UseStatement:
+        return this._resolveSymbol(node.qualifiedIdentifier)
 
       case ast.ConstantDeclaration:
         return this._resolveSymbol(node.assignment)

@@ -3,7 +3,6 @@ import DictTypeArgumentOptimization from './optimizations/DictTypeArgumentOptimi
 import TupleTypeArgumentOptimization from './optimizations/TupleTypeArgumentOptimization'
 import FutureTypeArgumentOptimization from './optimizations/FutureTypeArgumentOptimization'
 import ExpressionFunctionBodyOptimization from './optimizations/ExpressionFunctionBodyOptimization'
-import TypeInferenceOptimization from './optimizations/TypeInferenceOptimization'
 import CoreLibImportInjectionOptimization from './optimizations/CoreLibImportInjectionOptimization'
 import AlwaysReturnOptimization from './optimizations/AlwaysReturnOptimization'
 import ResolveReferencesOptimization from './optimizations/ResolveReferencesOptimization'
@@ -23,9 +22,6 @@ export default class Optimizer {
     const coreLibImportInjectionOptimization =
       new CoreLibImportInjectionOptimization(filename, code, messages)
 
-    const typeInferenceOptimization =
-      new TypeInferenceOptimization(filename, code, messages)
-
     const moveInlineQualifiedIdentifiersToUseStatementsOptimization =
       new MoveInlineQualifiedIdentifiersToUseStatementsOptimization(filename, code, messages)
 
@@ -38,9 +34,6 @@ export default class Optimizer {
       .apply(new FutureTypeArgumentOptimization(filename, code, messages))
       .apply(moveInlineQualifiedIdentifiersToUseStatementsOptimization.collect)
       .apply(moveInlineQualifiedIdentifiersToUseStatementsOptimization.splice)
-      .apply(typeInferenceOptimization.bindings)
-      .apply(typeInferenceOptimization.values)
-      .apply(typeInferenceOptimization.functions)
       .apply(coreLibImportInjectionOptimization.read)
       .apply(coreLibImportInjectionOptimization.write)
       .apply(new ResolveReferencesOptimization(filename, code, messages))

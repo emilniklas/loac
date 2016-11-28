@@ -1,5 +1,6 @@
 import Optimization from './Optimization'
 import ReferenceResolver from '../analysis/ReferenceResolver'
+import { PUBLIC_KEYWORD } from '../tokens'
 
 export default class ResolveReferencesOptimization extends Optimization {
   Program (program) {
@@ -10,7 +11,7 @@ export default class ResolveReferencesOptimization extends Optimization {
         this.error(
           binding.reference, `'${binding.name}' is not defined`
         )
-      } else if (binding.reference == null) {
+      } else if (binding.reference == null && !this._isPublic(binding.visibility)) {
         this.warning(
           binding.declaration, `'${binding.name}' is never used`
         )
@@ -18,5 +19,10 @@ export default class ResolveReferencesOptimization extends Optimization {
     }
 
     return program
+  }
+
+  _isPublic (visibility) {
+    return visibility == null ||
+      visibility.keyword.type === PUBLIC_KEYWORD
   }
 }

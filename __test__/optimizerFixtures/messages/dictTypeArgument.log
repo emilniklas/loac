@@ -1,0 +1,2 @@
+__test__/optimizerFixtures/raw/dictTypeArgument.loa:1:16: error: 'T' is not defined
+__test__/optimizerFixtures/raw/dictTypeArgument.loa:1:19: error: 'U' is not defined

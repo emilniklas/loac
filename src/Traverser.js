@@ -1,12 +1,13 @@
 export default class Traverser {
-  constructor (ast, transform) {
+  constructor (ast, enter, exit) {
     this.ast = ast
-    this.transform = transform
+    this.enter = enter || ((n) => n)
+    this.exit = exit || ((n) => n)
   }
 
-  static traverse (ast, transform) {
+  static traverse (ast, enter, exit) {
     return new Traverser(
-      ast, transform
+      ast, enter, exit
     )._traverseRoot()
   }
 
@@ -45,17 +46,15 @@ export default class Traverser {
   }
 
   _traverse (node) {
-    const ast = this.transform(node)
-
-    return this._nest(ast)
+    return this.exit(this._nest(this.enter(node)))
   }
 
   _nest (ast) {
-    return new Traverser(ast, this.transform)
+    return new Traverser(ast, this.enter, this.exit)
       ._traverseChildren()
   }
 
   _traverseMultiple (nodes) {
-    return nodes.map((node) => this._nest(this.transform(node)))
+    return nodes.map((node) => this._traverse((node)))
   }
 }
