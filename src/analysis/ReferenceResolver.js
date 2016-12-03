@@ -30,6 +30,11 @@ export default class ReferenceResolver {
           const dec = node.declaration
           switch (dec.constructor) {
             case ast.InterfaceDeclaration:
+            case ast.ActorDeclaration:
+            case ast.ClassDeclaration:
+            case ast.StructDeclaration:
+              this._declaration(dec.declaration.identifier, node.visibility)
+              break
             case ast.FunctionDeclaration:
               this._declaration(dec.identifier, node.visibility)
               break

@@ -1,0 +1,26 @@
+public class X {
+  public abstractField: Int
+  public concreteField: Int = 123
+  public inferredField = 123
+  public computedField: Int => 123
+  public inferredComputedField => 123
+
+  public const constant = 123
+  public const typedConstant: Int = 123
+
+  public delegate abstractDelegate: Int
+  public delegate concreteDelegate: Int = 123
+  public delegate inferredDelegate = 123
+
+  public abstractFuncField: () -> Int
+  public concreteFuncField: () -> Int = () => 123
+  public inferredFuncField = () => 123
+
+  public abstractMethod () -> Int
+  public concreteMethod () -> Int => 123
+  public inferredMethod () => 123
+
+  public static abstractStaticMethod () -> Int
+  public static concreteStaticMethod () -> Int => 123
+  public static inferredStaticMethod () => 123
+}

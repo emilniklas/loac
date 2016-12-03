@@ -58,6 +58,10 @@ export default class Parser {
     return this._current.type === tokenType
   }
 
+  _isAnyOf (...tokenTypes) {
+    return tokenTypes.includes(this._current.type)
+  }
+
   _nextIs (tokenType) {
     return this._next.type === tokenType
   }
@@ -240,6 +244,12 @@ export default class Parser {
           return this._parseConstantDeclaration()
         case t.INTERFACE_KEYWORD:
           return this._parseInterfaceDeclaration()
+        case t.ACTOR_KEYWORD:
+          return this._parseActorDeclaration()
+        case t.CLASS_KEYWORD:
+          return this._parseClassDeclaration()
+        case t.STRUCT_KEYWORD:
+          return this._parseStructDeclaration()
         case t.SYMBOL:
           return this._parseFunctionDeclaration()
       }
@@ -265,7 +275,6 @@ export default class Parser {
       case t.PRIVATE_KEYWORD:
         return new ast.Visibility(this._move())
     }
-
     this._parserError(
       'Expected "public" or "private"'
     )
@@ -448,7 +457,7 @@ export default class Parser {
     const beforeParens = this._cursor
     this._movePastParens()
 
-    const parse = this._is(t.FAT_ARROW)
+    const parse = this._isAnyOf(t.FAT_ARROW, t.ARROW, t.BEGIN_CURLY_BRACE)
       ? this._parseFunctionExpression
       : this._parseTupleLiteralExpression
 
@@ -499,15 +508,13 @@ export default class Parser {
   }
 
   /**
-   * InterfaceDeclaration ::=
-   *   INTERFACE_KEYWORD
+   * ObjectDeclaration ::=
    *   SimpleIdentifier
    *   Generics?
    *   (COLON TypeArgument)?
    *   ObjectBody?
    */
-  _parseInterfaceDeclaration () {
-    const keyword = this._consume(t.INTERFACE_KEYWORD)
+  _parseObjectDeclaration () {
     const identifier = this._parseSimpleIdentifier()
     const generics = this._is(t.BEGIN_ANGLE_BRACKET)
       ? this._parseGenerics()
@@ -519,12 +526,71 @@ export default class Parser {
       ? this._parseObjectBody()
       : null
 
-    return new ast.InterfaceDeclaration(
-      keyword,
+    return new ast.ObjectDeclaration(
       identifier,
       generics,
       typeArgument,
       body
+    )
+  }
+
+  /**
+   * InterfaceDeclaration ::=
+   *   INTERFACE_KEYWORD
+   *   ObjectDeclaration
+   */
+  _parseInterfaceDeclaration () {
+    const keyword = this._consume(t.INTERFACE_KEYWORD)
+    const declaration = this._parseObjectDeclaration()
+
+    return new ast.InterfaceDeclaration(
+      keyword,
+      declaration
+    )
+  }
+
+  /**
+   * StructDeclaration ::=
+   *   STRUCT_KEYWORD
+   *   ObjectDeclaration
+   */
+  _parseStructDeclaration () {
+    const keyword = this._consume(t.STRUCT_KEYWORD)
+    const declaration = this._parseObjectDeclaration()
+
+    return new ast.StructDeclaration(
+      keyword,
+      declaration
+    )
+  }
+
+  /**
+   * ClassDeclaration ::=
+   *   CLASS_KEYWORD
+   *   ObjectDeclaration
+   */
+  _parseClassDeclaration () {
+    const keyword = this._consume(t.CLASS_KEYWORD)
+    const declaration = this._parseObjectDeclaration()
+
+    return new ast.ClassDeclaration(
+      keyword,
+      declaration
+    )
+  }
+
+  /**
+   * ActorDeclaration ::=
+   *   ACTOR_KEYWORD
+   *   ObjectDeclaration
+   */
+  _parseActorDeclaration () {
+    const keyword = this._consume(t.ACTOR_KEYWORD)
+    const declaration = this._parseObjectDeclaration()
+
+    return new ast.ActorDeclaration(
+      keyword,
+      declaration
     )
   }
 
@@ -552,17 +618,14 @@ export default class Parser {
   /**
    * Field ::=
    *   Annotation*
-   *   Visibility?
-   *   (DELEGATE_KEYWORD | STATIC_KEYWORD | CONST_KEYWORD)?
-   *   SimpleIdentifier
-   *   TypeAnnotation?
-   *   (EQUALS_SIGN Expression)?
+   *   Visibility
+   *   (STATIC_KEYWORD | CONST_KEYWORD | DELEGATE_KEYWORD)?
+   *   FieldName?
+   *   FieldBody?
    */
   _parseField () {
     const annotations = []
-    const visibility = this._isVisibility()
-      ? this._parseVisibility()
-      : null
+    const visibility = this._parseVisibility()
     const keyword = (() => {
       switch (this._current.type) {
         case t.STATIC_KEYWORD:
@@ -573,20 +636,77 @@ export default class Parser {
           return null
       }
     })()
-    const identifier = this._parseSimpleIdentifier()
-    const typeAnnotation = this._is(t.COLON)
-      ? this._parseTypeAnnotation()
+    const name = !this._is(t.BEGIN_PAREN)
+      ? this._parseFieldName()
       : null
-
-    const expression = this._is(t.EQUALS_SIGN)
-      ? this._move() && this._parseExpression()
+    const body = this._isAnyOf(
+      t.EQUALS_SIGN,
+      t.COLON,
+      t.FAT_ARROW,
+      t.BEGIN_PAREN
+    )
+      ? this._parseFieldBody()
       : null
 
     return new ast.Field(
-      annotations, visibility,
-      keyword, identifier,
-      typeAnnotation, expression
+      annotations,
+      visibility,
+      keyword,
+      name,
+      body
     )
+  }
+
+  /**
+   * FieldName ::=
+   *   SimpleIdentifier |
+   *   OverloadableOperator
+   */
+  _parseFieldName () {
+    return new ast.FieldName((() => {
+      switch (this._current.type) {
+        case t.SYMBOL:
+          return this._parseSimpleIdentifier()
+        default:
+          this._parserError(
+            'Expected a valid field name (overloadable operator or symbol)'
+          )
+      }
+    })())
+  }
+
+  /**
+   * FieldBody ::=
+   *   TypeAnnotation? (EQUALS_SIGN Expression | FunctionBody)? |
+   *   FunctionExpression
+   */
+  _parseFieldBody () {
+    return new ast.FieldBody(...(() => {
+      switch (this._current.type) {
+        case t.COLON:
+          this._move() // :
+          const type = this._parseTypeArgument()
+          const expression = this._is(t.EQUALS_SIGN)
+            ? this._move() && this._parseExpression()
+            : null
+          const computeBody = this._isAnyOf(t.BEGIN_CURLY_BRACE, t.FAT_ARROW)
+            ? this._parseFunctionBody()
+            : null
+          return [type, computeBody, expression]
+        case t.BEGIN_CURLY_BRACE:
+        case t.FAT_ARROW:
+          return [null, this._parseFunctionBody()]
+        case t.EQUALS_SIGN:
+          this._move() // =
+          return [null, null, this._parseExpression()]
+        case t.BEGIN_PAREN:
+          return [null, null, this._parseFunctionExpression()]
+        default:
+          this._parserError(
+            'Expected a type annotation, an assignment, or a function expression'
+          )
+      }
+    })())
   }
 
   /**
@@ -739,7 +859,9 @@ export default class Parser {
    *   | DictTypeArgument
    *   | TupleTypeArgument
    *   | FutureTypeArgument
+   *   | FunctionTypeArgument
    *   | UnionTypeArgument
+   *   | IntersectionTypeArgument
    *   )
    */
   _parseTypeArgument () {
@@ -748,6 +870,11 @@ export default class Parser {
     if (this._is(t.PIPE)) {
       this._move()
       return this._parseUnionTypeArgument([first])
+    }
+
+    if (this._is(t.AMPERSAND)) {
+      this._move()
+      return this._parseIntersectionTypeArgument([first])
     }
 
     return first
@@ -760,7 +887,14 @@ export default class Parser {
       case t.BEGIN_SQUARE_BRACKET:
         return this._parseListOrDictTypeArgument()
       case t.BEGIN_PAREN:
-        return this._parseTupleTypeArgument()
+        const tuple = this._parseTupleTypeArgument()
+        if (this._is(t.ARROW)) {
+          return new ast.FunctionTypeArgument(
+            tuple,
+            this._parseReturnType()
+          )
+        }
+        return tuple
       case t.STAR:
         return this._parseFutureTypeArgument()
       default:
@@ -958,6 +1092,27 @@ export default class Parser {
     this._move()
 
     return this._parseUnionTypeArgument(types)
+  }
+
+  /**
+   * IntersectionTypeArgument ::=
+   *   TypeArgument
+   *   (PIPE TypeArgument)+
+   */
+  _parseIntersectionTypeArgument (carry = []) {
+    const types = carry.concat(
+      this._parseSingleTypeArgument()
+    )
+
+    if (!this._is(t.AMPERSAND)) {
+      return new ast.IntersectionTypeArgument(
+        types
+      )
+    }
+
+    this._move()
+
+    return this._parseIntersectionTypeArgument(types)
   }
 
   /**

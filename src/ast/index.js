@@ -17,8 +17,14 @@ import CallExpression from './CallExpression'
 import Assignment from './Assignment'
 import ConstantDeclaration from './ConstantDeclaration'
 import TopLevelDeclaration from './TopLevelDeclaration'
+import ObjectDeclaration from './ObjectDeclaration'
+import ActorDeclaration from './ActorDeclaration'
+import ClassDeclaration from './ClassDeclaration'
+import StructDeclaration from './StructDeclaration'
 import InterfaceDeclaration from './InterfaceDeclaration'
 import Field from './Field'
+import FieldName from './FieldName'
+import FieldBody from './FieldBody'
 import ObjectBody from './ObjectBody'
 import ParameterList from './ParameterList'
 import ExpressionFunctionBody from './ExpressionFunctionBody'
@@ -32,7 +38,9 @@ import TypeArguments from './TypeArguments'
 import DictTypeArgument from './DictTypeArgument'
 import TupleTypeArgument from './TupleTypeArgument'
 import FutureTypeArgument from './FutureTypeArgument'
+import FunctionTypeArgument from './FunctionTypeArgument'
 import UnionTypeArgument from './UnionTypeArgument'
+import IntersectionTypeArgument from './IntersectionTypeArgument'
 import ReturnStatement from './ReturnStatement'
 import IfStatement from './IfStatement'
 import LetStatement from './LetStatement'
@@ -63,8 +71,14 @@ export {
   Assignment,
   ConstantDeclaration,
   TopLevelDeclaration,
+  ObjectDeclaration,
+  ActorDeclaration,
+  ClassDeclaration,
+  StructDeclaration,
   InterfaceDeclaration,
   Field,
+  FieldName,
+  FieldBody,
   ObjectBody,
   ParameterList,
   ExpressionFunctionBody,
@@ -78,7 +92,9 @@ export {
   DictTypeArgument,
   TupleTypeArgument,
   FutureTypeArgument,
+  FunctionTypeArgument,
   UnionTypeArgument,
+  IntersectionTypeArgument,
   ReturnStatement,
   IfStatement,
   LetStatement,

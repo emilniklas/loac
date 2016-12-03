@@ -25,14 +25,16 @@ export default class ExpressionParser {
 
       if (
         !(segment instanceof ast.Operator) &&
-        this._isExpressionHead &&
-        !this._parser._is(t.BEGIN_PAREN)
+        !this._isOperator
       ) {
         break
       }
     }
 
-    if (segments.length === 0) {
+    if (
+      segments[segments.length - 1] instanceof ast.Operator ||
+      segments.length === 0
+    ) {
       this._parser._parserError(
         'Expected an expression'
       )
@@ -176,6 +178,15 @@ export default class ExpressionParser {
 
     while (segments.length > 0) {
       const segment = segments.shift()
+      if (
+        state === EXPECTS_OPERAND &&
+        segment instanceof ast.BinaryOperator
+      ) {
+        this._parser._cursor = this._parser._tokens.indexOf(segment.begin)
+        this._parser._parserError(
+          'Expected an expression'
+        )
+      }
 
       switch (state) {
         case EXPECTS_OPERAND:

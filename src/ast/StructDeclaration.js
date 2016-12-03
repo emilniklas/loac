@@ -1,9 +1,9 @@
 /**
- * InterfaceDeclaration ::=
- *   INTERFACE_KEYWORD
+ * StructDeclaration ::=
+ *   STRUCT_KEYWORD
  *   ObjectDeclaration
  */
-export default class InterfaceDeclaration {
+export default class StructDeclaration {
   constructor (
     keyword,
     declaration

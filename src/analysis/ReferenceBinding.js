@@ -113,10 +113,17 @@ export default class ReferenceBinding {
     switch (node.constructor) {
       case ast.NamePattern:
       case ast.ValueExpression:
-      case ast.InterfaceDeclaration:
       case ast.FunctionDeclaration:
       case ast.TypeReference:
+      case ast.ObjectDeclaration:
         return this._resolveSymbol(node.identifier)
+
+      case ast.InterfaceDeclaration:
+      case ast.ActorDeclaration:
+      case ast.ClassDeclaration:
+      case ast.StructDeclaration:
+        console.log(node.declaration)
+        return this._resolveSymbol(node.declaration)
 
       case ast.UseStatement:
         return this._resolveSymbol(node.qualifiedIdentifier)

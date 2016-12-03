@@ -5,6 +5,7 @@ import FutureTypeArgumentOptimization from './optimizations/FutureTypeArgumentOp
 import ExpressionFunctionBodyOptimization from './optimizations/ExpressionFunctionBodyOptimization'
 import CoreLibImportInjectionOptimization from './optimizations/CoreLibImportInjectionOptimization'
 import AlwaysReturnOptimization from './optimizations/AlwaysReturnOptimization'
+import AlwaysObjectBodyOptimization from './optimizations/AlwaysObjectBodyOptimization'
 import ResolveReferencesOptimization from './optimizations/ResolveReferencesOptimization'
 import MoveInlineQualifiedIdentifiersToUseStatementsOptimization from
   './optimizations/MoveInlineQualifiedIdentifiersToUseStatementsOptimization'
@@ -28,6 +29,7 @@ export default class Optimizer {
     return new Optimizer(ast, messages)
       .apply(new ExpressionFunctionBodyOptimization(filename, code, messages))
       .apply(new AlwaysReturnOptimization(filename, code, messages))
+      .apply(new AlwaysObjectBodyOptimization(filename, code, messages))
       .apply(new ListTypeArgumentOptimization(filename, code, messages))
       .apply(new DictTypeArgumentOptimization(filename, code, messages))
       .apply(new TupleTypeArgumentOptimization(filename, code, messages))

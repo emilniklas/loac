@@ -22,7 +22,7 @@ export default class ResolveReferencesOptimization extends Optimization {
   }
 
   _isPublic (visibility) {
-    return visibility == null ||
+    return visibility != null &&
       visibility.keyword.type === PUBLIC_KEYWORD
   }
 }

@@ -1,3 +1,3 @@
 use Qualified.U
 
-public interface T: U
+public interface T: U {}

@@ -36,6 +36,18 @@ describe('ExpressionParser', () => {
     )
   })
 
+  test('invalid suffix operator', () => {
+    expect(() => ExpressionParser.parse(
+      removeWhitespace(Lexer.tokenize('3 +'))
+    )).toThrow('ParserError: Expected an expression, saw EOF ""')
+  })
+
+  test('invalid multiple operators', () => {
+    expect(() => ExpressionParser.parse(
+      removeWhitespace(Lexer.tokenize('3 + + 3'))
+    )).toThrow('ParserError: Expected an expression, saw PLUS_SIGN "+"')
+  })
+
   test('same operator multi operator expression', () => {
     assertExpression(
       '3 - 4 - 5',

@@ -1,40 +1,38 @@
 /**
  * Field ::=
  *   Annotation*
- *   Visibility?
- *   (DELEGATE_KEYWORD | STATIC_KEYWORD | CONST_KEYWORD)?
- *   SimpleIdentifier
- *   TypeAnnotation?
- *   (EQUALS_SIGN Expression)?
+ *   Visibility
+ *   (STATIC_KEYWORD | CONST_KEYWORD | DELEGATE_KEYWORD)?
+ *   FieldName?
+ *   FieldBody?
  */
 export default class Field {
   constructor (
     annotations = [],
-    visibility = null,
+    visibility,
     keyword = null,
-    identifier,
-    typeAnnotation = null,
-    expression = null
+    name = null,
+    body = null
   ) {
     this.annotations = annotations
     this.visibility = visibility
     this.keyword = keyword
-    this.identifier = identifier
-    this.typeAnnotation = typeAnnotation
-    this.expression = expression
+    this.name = name
+    this.body = body
   }
 
   get begin () {
     return this.annotations.length > 1
       ? this.annotations[0].begin
-      : this.visibility == null ? this.keyword : this.visibility.begin
+      : this.visibility.begin
   }
 
   get end () {
     return (
-      this.expression ||
-      this.typeAnnotation ||
-      this.identifier
+      this.body ||
+      this.name ||
+      this.keyword ||
+      this.visibility
     ).end
   }
 }

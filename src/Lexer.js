@@ -85,6 +85,9 @@ export default class Lexer {
     if ((m = /^\bdelegate\b/.exec(tail))) {
       return [t.DELEGATE_KEYWORD, m[0]]
     }
+    if ((m = /^\bstatic\b/.exec(tail))) {
+      return [t.STATIC_KEYWORD, m[0]]
+    }
     if ((m = /^\breturn\b/.exec(tail))) {
       return [t.RETURN_KEYWORD, m[0]]
     }

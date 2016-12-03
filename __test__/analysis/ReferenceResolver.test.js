@@ -192,6 +192,27 @@ describe('ReferenceResolver', () => {
       [[2, 13], [NaN, NaN]]
     ])
   })
+
+  test('undefined value', () => {
+    assertFunctionReferences(`
+      () {
+        return a
+      }
+    `, [
+      [[NaN, NaN], [3, 15]]
+    ])
+  })
+
+  test('unused declaration', () => {
+    assertFunctionReferences(`
+      () {
+        let a = 123
+        return 123
+      }
+    `, [
+      [[3, 12], [NaN, NaN]]
+    ])
+  })
 })
 
 function assertFunctionReferences (code, expected) {
