@@ -1,9 +1,6 @@
 import ReferenceResolver from '../../src/analysis/ReferenceResolver'
-import ReferenceBinding from '../../src/analysis/ReferenceBinding'
 import Lexer from '../../src/Lexer'
 import Parser from '../../src/Parser'
-import * as ast from '../../src/ast'
-import * as tokens from '../../src/tokens'
 
 describe('ReferenceResolver', () => {
   test('it resolves references', () => {

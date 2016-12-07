@@ -1,7 +1,6 @@
 import Parser from './Parser'
 import * as t from './tokens'
 import * as ast from './ast'
-import ParserError from './errors/ParserError'
 
 const EXPECTS_OPERAND = 'EXPECTS_OPERAND'
 const EXPECTS_OPERATOR = 'EXPECTS_OPERATOR'
@@ -74,7 +73,6 @@ export default class ExpressionParser {
       case t.AND_KEYWORD:
       case t.OR_KEYWORD:
       case t.PLUS_SIGN:
-      case t.DASH:
       case t.SLASH:
       case t.STAR:
       case t.PERCENT_SIGN:

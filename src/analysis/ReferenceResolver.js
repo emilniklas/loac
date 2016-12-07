@@ -1,7 +1,5 @@
 import * as ast from '../ast'
-import * as ir from '../ir'
 import ReferenceBinding from './ReferenceBinding'
-import OptimizerError from '../errors/OptimizerError'
 import Traverser from '../Traverser'
 
 export default class ReferenceResolver {

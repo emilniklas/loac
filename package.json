@@ -1,6 +1,11 @@
 {
   "name": "loac",
   "version": "0.0.6",
+  "license": "WFTPL",
+  "bin": {
+    "loac": "bin/loac.js"
+  },
+  "main": "dist/index.js",
   "devDependencies": {
     "babel-cli": "^6.18.0",
     "babel-eslint": "^7.1.1",
@@ -16,10 +21,6 @@
     "test": "standard && jest",
     "prepublish": "babel --out-dir dist src"
   },
-  "bin": {
-    "loac": "bin/loac.js"
-  },
-  "main": "dist/index.js",
   "jest": {},
   "standard": {
     "parser": "babel-eslint",
@@ -27,7 +28,8 @@
       "describe",
       "test",
       "expect"
-    ]
+    ],
+    "ignore": ["__test__/generators/fixtures/javascript"]
   },
   "dependencies": {
     "yargs": "^6.4.0"

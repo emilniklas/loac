@@ -1,9 +1,9 @@
 /**
  */
 export default class CharLiteralExpression {
-  constructor (
-  ) {
-  }
+  // constructor (
+  // ) {
+  // }
 
   get begin () {
   }

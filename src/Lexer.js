@@ -207,7 +207,7 @@ export default class Lexer {
     if ((m = /^\[/.exec(tail))) {
       return [t.BEGIN_SQUARE_BRACKET, m[0]]
     }
-    if ((m = /^\]/.exec(tail))) {
+    if ((m = /^]/.exec(tail))) {
       return [t.END_SQUARE_BRACKET, m[0]]
     }
 

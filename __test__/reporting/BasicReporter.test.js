@@ -1,5 +1,4 @@
 import BasicReporter from '../../src/reporting/BasicReporter'
-import MessageAggregator from '../../src/MessageAggregator'
 import Lexer from '../../src/Lexer'
 import * as ast from '../../src/ast'
 import * as tok from '../../src/tokens'
@@ -115,6 +114,6 @@ describe('BasicReporter', () => {
 })
 
 function assertBasicReport (messages, lines) {
-    expect(BasicReporter.report(messages))
+  expect(BasicReporter.report(messages))
       .toEqual(lines)
 }

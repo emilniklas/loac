@@ -87,7 +87,7 @@ export default class ErlangGenerator {
   }
 
   get _filename () {
-    const segments = this._filePath.split(/[\/\\]/)
+    const segments = this._filePath.split(/[/\\]/)
     const last = segments[segments.length - 1]
     return last.replace(/\.loa$/, '')
   }

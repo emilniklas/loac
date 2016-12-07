@@ -1,4 +1,3 @@
-import Optimization from './Optimization'
 import * as ast from '../ast'
 import { BEGIN_CURLY_BRACE, END_CURLY_BRACE } from '../ir'
 

@@ -63,11 +63,11 @@ for (let loaFile of readdirSync(loaDir)) {
 
     test('in erlang', () =>
       expect(clearWhitespace(erlangGen))
-        .toEqual(clearWhitespace(erlang))
+        .toEqual(removeLocation(clearWhitespace(erlang)))
     )
     test('in javascript', () =>
       expect(clearWhitespace(javascriptGen))
-        .toEqual(clearWhitespace(javascript))
+        .toEqual(removeLocation(clearWhitespace(javascript)))
     )
   })
 }

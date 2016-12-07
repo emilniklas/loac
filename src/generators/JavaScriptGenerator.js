@@ -1,5 +1,3 @@
-import * as ast from '../ast'
-
 export default class JavaScriptGenerator {
   constructor (ast) {
     this._ast = ast
