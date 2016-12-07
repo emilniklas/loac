@@ -53,6 +53,8 @@ export default class ExpressionParser {
       case t.BEGIN_PAREN:
       case t.TRUE_KEYWORD:
       case t.FALSE_KEYWORD:
+      case t.THIS_KEYWORD:
+      case t.HASH:
         return true
       default:
         return false
@@ -94,10 +96,12 @@ export default class ExpressionParser {
    *   | DictLiteralExpression
    *   | StringLiteralExpression
    *   | CharLiteralExpression
+   *   | SymbolLiteralExpression
    *   | TupleLiteralExpression
    *   | BoolLiteralExpression
    *   | ValueExpression
    *   | FunctionExpression
+   *   | ThisExpression
    *   | CallExpression
    *   )
    */
@@ -113,6 +117,8 @@ export default class ExpressionParser {
         return this._parser._parseStringLiteralExpression()
       case t.SINGLE_QUOTE:
         return this._parser._parseCharLiteralExpression()
+      case t.HASH:
+        return this._parser._parseSymbolLiteralExpression()
       case t.SYMBOL:
         return this._parser._parseValueExpression()
       case t.BEGIN_PAREN:
@@ -120,6 +126,8 @@ export default class ExpressionParser {
       case t.TRUE_KEYWORD:
       case t.FALSE_KEYWORD:
         return this._parser._parseBoolLiteralExpression()
+      case t.THIS_KEYWORD:
+        return this._parser._parseThisExpression()
 
       // Since a dash can be used as both a prefix
       // and an infix operator, we need to treat it as a

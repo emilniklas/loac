@@ -44,12 +44,8 @@ test('multiple whitespace tokens', () => {
     Lexer.tokenize(' \t')
   ).toEqual([{
     type: WHITESPACE,
-    content: ' ',
+    content: ' \t',
     location: ['<unknown>', 1, 0]
-  }, {
-    type: WHITESPACE,
-    content: '\t',
-    location: ['<unknown>', 1, 1]
   }, {
     type: EOF,
     content: '',

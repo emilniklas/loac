@@ -42,18 +42,20 @@ export default class Lexer {
   }
 
   _nextToken (tail) {
+    if (this._isWhitespace(tail)) {
+      return [t.WHITESPACE, this._getWhitespace(tail)]
+    }
+    if (this._isSingleLineComment(tail)) {
+      return [t.SINGLE_LINE_COMMENT, this._getSingleLineComment(tail)]
+    }
+    if (this._isMultiLineComment(tail)) {
+      return [t.MULTI_LINE_COMMENT, this._getMultiLineComment(tail)]
+    }
+    // if ((m = /^\/\*[^]*\*\//.exec(tail))) {
+    //   return [t.MULTI_LINE_COMMENT, m[0]]
+    // }
+
     let m
-
-    if ((m = /^\s/.exec(tail))) {
-      return [t.WHITESPACE, m[0]]
-    }
-
-    if ((m = /^\/\/.*/.exec(tail))) {
-      return [t.SINGLE_LINE_COMMENT, m[0]]
-    }
-    if ((m = /^\/\*[^]*\*\//.exec(tail))) {
-      return [t.MULTI_LINE_COMMENT, m[0]]
-    }
 
     if ((m = /^\bmodule\b/.exec(tail))) {
       return [t.MODULE_KEYWORD, m[0]]
@@ -121,6 +123,9 @@ export default class Lexer {
     if ((m = /^\bfalse\b/.exec(tail))) {
       return [t.FALSE_KEYWORD, m[0]]
     }
+    if ((m = /^\bthis\b/.exec(tail))) {
+      return [t.THIS_KEYWORD, m[0]]
+    }
 
     if ((m = /^\./.exec(tail))) {
       return [t.PERIOD, m[0]]
@@ -185,6 +190,9 @@ export default class Lexer {
     if ((m = /^\^/.exec(tail))) {
       return [t.CARET, m[0]]
     }
+    if ((m = /^#/.exec(tail))) {
+      return [t.HASH, m[0]]
+    }
 
     if ((m = /^{/.exec(tail))) {
       return [t.BEGIN_CURLY_BRACE, m[0]]
@@ -231,5 +239,87 @@ export default class Lexer {
 
   get head () {
     return this._code.substr(0, this._cursor)
+  }
+
+  // WHITESPACE
+  _whitespaceChars = [' ', '\f', '\n', '\r', '\t', '\v']
+
+  _getWhitespace (tail) {
+    let buffer = ''
+    let rest = tail
+
+    while (this._isWhitespace(rest)) {
+      buffer += rest[0]
+      rest = rest.slice(1)
+    }
+
+    return buffer
+  }
+
+  _isWhitespace (tail) {
+    return this._whitespaceChars.indexOf(tail[0]) !== -1
+  }
+
+  // SINGLE_LINE_COMMENT
+  _lineBreakTokens = ['\r\n', '\n\r', '\n', '\r']
+
+  _isSingleLineComment (tail) {
+    return tail.slice(0, 2) === '//'
+  }
+
+  _getSingleLineComment (tail) {
+    let buffer = ''
+    let rest = tail
+
+    const isEOL = () =>
+      this._lineBreakTokens.indexOf(rest.slice(0, 2)) !== -1 ||
+      this._lineBreakTokens.indexOf(rest[0]) !== -1
+
+    const isNotDone = () =>
+      rest.length > 0 && !isEOL()
+
+    while (isNotDone()) {
+      buffer += rest[0]
+      rest = rest.slice(1)
+    }
+
+    if (isEOL()) {
+      buffer += this._lineBreakTokens
+        .filter((t) => rest.slice(0, t.length) === t)[0]
+    }
+
+    return buffer
+  }
+
+  // MULTI_LINE_COMMENT
+  _isMultiLineComment (tail) {
+    return tail.slice(0, 2) === '/*'
+  }
+
+  _getMultiLineComment (tail) {
+    let buffer = tail.slice(0, 2)
+    let rest = tail.slice(2)
+    let bufferAtNestedEnd = null
+
+    while (rest.length > 0 && rest.slice(0, 2) !== '*/') {
+      if (this._isMultiLineComment(rest)) {
+        const nested = this._getMultiLineComment(rest)
+        buffer += nested
+        rest = rest.slice(nested.length)
+        bufferAtNestedEnd = buffer
+      } else {
+        buffer += rest[0]
+        rest = rest.slice(1)
+      }
+    }
+
+    if (rest.length > 0) {
+      buffer += rest.slice(0, 2)
+      rest = rest.slice(2)
+    } else if (bufferAtNestedEnd != null) {
+      return bufferAtNestedEnd
+    }
+
+    return buffer
   }
 }

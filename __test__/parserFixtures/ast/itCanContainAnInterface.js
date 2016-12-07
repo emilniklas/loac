@@ -13,10 +13,12 @@ export default new ast.Program(null, [], [
     ),
     new ast.InterfaceDeclaration(
       tok(t.INTERFACE_KEYWORD, 'interface', [1, 8]),
-      simpleIdentifier('X', [1, 18]),
-      null,
-      null,
-      null
+      new ast.ObjectDeclaration(
+        simpleIdentifier('X', [1, 18]),
+        null,
+        null,
+        null
+      )
     )
   )
 ])

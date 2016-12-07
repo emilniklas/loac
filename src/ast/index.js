@@ -10,9 +10,11 @@ import IntegerLiteralExpression from './IntegerLiteralExpression'
 import FloatLiteralExpression from './FloatLiteralExpression'
 import StringLiteralExpression from './StringLiteralExpression'
 import CharLiteralExpression from './CharLiteralExpression'
+import SymbolLiteralExpression from './SymbolLiteralExpression'
 import TupleLiteralExpression from './TupleLiteralExpression'
 import BoolLiteralExpression from './BoolLiteralExpression'
 import ValueExpression from './ValueExpression'
+import ThisExpression from './ThisExpression'
 import CallExpression from './CallExpression'
 import Assignment from './Assignment'
 import ConstantDeclaration from './ConstantDeclaration'
@@ -65,9 +67,11 @@ export {
   FloatLiteralExpression,
   StringLiteralExpression,
   CharLiteralExpression,
+  SymbolLiteralExpression,
   TupleLiteralExpression,
   BoolLiteralExpression,
   ValueExpression,
+  ThisExpression,
   CallExpression,
   Assignment,
   ConstantDeclaration,

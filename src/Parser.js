@@ -354,10 +354,12 @@ export default class Parser {
    *   | DictLiteralExpression
    *   | StringLiteralExpression
    *   | CharLiteralExpression
+   *   | SymbolLiteralExpression
    *   | TupleLiteralExpression
    *   | BoolLiteralExpression
    *   | ValueExpression
    *   | FunctionExpression
+   *   | ThisExpression
    *   | CallExpression
    *   )
    */
@@ -382,6 +384,33 @@ export default class Parser {
   _parseFloatLiteralExpression () {
     return new ast.FloatLiteralExpression(
       this._consume(t.FLOAT_LITERAL)
+    )
+  }
+
+  /**
+   * SymbolLiteralExpression ::=
+   *   FLOAT_LITERAL
+   */
+  _parseSymbolLiteralExpression () {
+    return new ast.SymbolLiteralExpression(
+      this._consume(t.HASH),
+      this._parseIdentifier()
+    )
+  }
+
+  /**
+   * CharLiteralExpression ::=
+   *   SINGLE_QUOTE
+   *   AnyToken
+   *   SINGLE_QUOTE
+   */
+  _parseCharLiteralExpression () {
+    const begin = this._consume(t.SINGLE_QUOTE)
+    const char = this._move()
+    const end = this._consume(t.SINGLE_QUOTE)
+
+    return new ast.CharLiteralExpression(
+      begin, char, end
     )
   }
 
@@ -435,6 +464,18 @@ export default class Parser {
 
     return new ast.ValueExpression(
       identifier
+    )
+  }
+
+  /**
+   * ThisExpression ::=
+   *   THIS_KEYWORD
+   */
+  _parseThisExpression () {
+    const keyword = this._consume(t.THIS_KEYWORD)
+
+    return new ast.ThisExpression(
+      keyword
     )
   }
 
