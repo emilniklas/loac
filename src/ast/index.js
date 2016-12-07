@@ -50,6 +50,7 @@ import UnaryOperator from './UnaryOperator'
 import BinaryOperator from './BinaryOperator'
 import UnaryOperation from './UnaryOperation'
 import BinaryOperation from './BinaryOperation'
+import Annotation from './Annotation'
 
 export {
   Program,
@@ -103,5 +104,6 @@ export {
   UnaryOperator,
   BinaryOperator,
   UnaryOperation,
-  BinaryOperation
+  BinaryOperation,
+  Annotation
 }

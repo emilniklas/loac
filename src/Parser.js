@@ -13,9 +13,6 @@ export default class Parser {
     this._filename = filename
     this._code = code
     this._tokens = tokens
-    if (this._tokens == null) {
-      throw new Error('WARN')
-    }
     this._cursor = cursor
   }
 
@@ -235,7 +232,10 @@ export default class Parser {
    *   )
    */
   _parseTopLevelDeclaration () {
-    // PARSER ANNOTATIONS
+    const annotations = this._multi(
+      () => this._is(t.AT),
+      this._parseAnnotation
+    )
     const visibility = this._parseVisibility()
 
     const declaration = (() => {
@@ -259,7 +259,7 @@ export default class Parser {
     })()
 
     return new ast.TopLevelDeclaration(
-      [], visibility, declaration
+      annotations, visibility, declaration
     )
   }
 
@@ -624,7 +624,10 @@ export default class Parser {
    *   FieldBody?
    */
   _parseField () {
-    const annotations = []
+    const annotations = this._multi(
+      () => this._is(t.AT),
+      this._parseAnnotation
+    )
     const visibility = this._parseVisibility()
     const keyword = (() => {
       switch (this._current.type) {
@@ -1189,6 +1192,21 @@ export default class Parser {
 
     this._parserError(
       'Expected a function declaration or an assignment'
+    )
+  }
+
+  /**
+   * Annotation ::=
+   *   AT
+   *   Expression
+   */
+  _parseAnnotation () {
+    const at = this._consume(t.AT)
+    const expression = this._parseExpression()
+
+    return new ast.Annotation(
+      at,
+      expression
     )
   }
 }
